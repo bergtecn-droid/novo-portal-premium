@@ -9,10 +9,12 @@ export interface MediaItem {
   youtubeId?: string;
 }
 
+export type Align = "left" | "center" | "right";
+
 export type Block =
-  | { type: "heading"; content: string }
-  | { type: "text"; content: string }
-  | { type: "quote"; content: string; author?: string }
+  | { type: "heading"; content: string; level?: 2 | 3; align?: Align }
+  | { type: "text"; content: string; align?: Align }
+  | { type: "quote"; content: string; author?: string; align?: Align }
   | { type: "image"; media: MediaItem; size?: "grande" | "medio" }
   | { type: "video"; media: MediaItem }
   | { type: "gallery"; items: MediaItem[] };

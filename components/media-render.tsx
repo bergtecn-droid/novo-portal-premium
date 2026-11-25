@@ -2,7 +2,14 @@
 
 import { useState } from "react";
 import { RichText } from "@/lib/rich";
-import type { Block, MediaItem } from "@/lib/types";
+import type { Align, Block, MediaItem } from "@/lib/types";
+
+const alignStyle = (align?: Align) =>
+  align === "center"
+    ? { textAlign: "center" as const }
+    : align === "right"
+      ? { textAlign: "right" as const }
+      : undefined;
 
 function Caption({ text, position }: { text?: string; position: "top" | "bottom" }) {
   if (!text) return null;
@@ -93,23 +100,30 @@ export function MediaRenderer({ blocks }: { blocks: Block[] }) {
             return (
               <h2
                 key={i}
-                className="font-display pt-4 text-2xl font-bold text-neutral-900 dark:text-white"
+                style={alignStyle(block.align)}
+                className={
+                  block.level === 3
+                    ? "font-display pt-4 text-xl font-bold text-neutral-900 dark:text-white"
+                    : "font-display pt-4 text-2xl font-bold text-neutral-900 dark:text-white"
+                }
               >
                 {block.content}
               </h2>
             );
           case "text":
             return (
-              <RichText
-                key={i}
-                text={block.content}
-                className="space-y-4 text-[17px] leading-8 text-neutral-700 dark:text-neutral-300"
-              />
+              <div key={i} style={alignStyle(block.align)}>
+                <RichText
+                  text={block.content}
+                  className="space-y-4 text-[17px] leading-8 text-neutral-700 dark:text-neutral-300"
+                />
+              </div>
             );
           case "quote":
             return (
               <blockquote
                 key={i}
+                style={alignStyle(block.align)}
                 className="rounded-r-xl border-l-4 border-[var(--accent)] bg-[var(--accent-wash)] py-4 pl-5 pr-4 dark:bg-neutral-800/60"
               >
                 <div className="font-display text-xl italic leading-relaxed text-neutral-800 dark:text-neutral-200">

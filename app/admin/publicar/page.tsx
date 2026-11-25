@@ -7,7 +7,7 @@ import { MediaField } from "@/components/media-field";
 import { MediaRenderer } from "@/components/media-render";
 import { useSettings } from "@/lib/settings";
 import { getArticle, slugify, upsertArticle } from "@/lib/store";
-import type { Article, Block, Editoria, MediaItem, Status } from "@/lib/types";
+import type { Align, Article, Block, Editoria, MediaItem, Status } from "@/lib/types";
 
 const blankArticle = (): Article => ({
   id: "",
@@ -49,12 +49,44 @@ const inputCls =
 const toolBtn =
   "rounded-lg bg-neutral-100 px-2.5 py-1.5 text-xs font-bold transition hover:bg-[var(--accent-wash)] dark:bg-neutral-800 dark:hover:bg-[var(--accent-wash)]";
 
-function TextBlockEditor({
+function AlignPicker({
   value,
   onChange,
 }: {
+  value?: Align;
+  onChange: (a: Align) => void;
+}) {
+  return (
+    <div className="flex flex-wrap items-center gap-1.5">
+      <span className="text-[11px] font-bold uppercase tracking-wider text-neutral-400">
+        Alinhar:
+      </span>
+      {([["left", "⬅ Esquerda"], ["center", "💠 Centro"], ["right", "➡ Direita"]] as const).map(
+        ([a, label]) => (
+          <button
+            key={a}
+            type="button"
+            onClick={() => onChange(a)}
+            className={`${toolBtn} ${value === a ? "ring-2 ring-[var(--accent)]" : ""}`}
+          >
+            {label}
+          </button>
+        ),
+      )}
+    </div>
+  );
+}
+
+function TextBlockEditor({
+  value,
+  onChange,
+  align,
+  onAlign,
+}: {
   value: string;
   onChange: (v: string) => void;
+  align?: Align;
+  onAlign: (a: Align) => void;
 }) {
   const ref = useRef<HTMLTextAreaElement>(null);
 
@@ -98,6 +130,9 @@ function TextBlockEditor({
         <button type="button" className={toolBtn} onMouseDown={(e) => e.preventDefault()} onClick={() => apply((sel) => `__${sel}__`)} title="Sublinhado">
           <u>U</u> Sublinhado
         </button>
+        <button type="button" className={toolBtn} onMouseDown={(e) => e.preventDefault()} onClick={() => apply((sel) => `==${sel}==`)} title="Palavra com cor de destaque">
+          🎨 Cor
+        </button>
         <button type="button" className={toolBtn} onMouseDown={(e) => e.preventDefault()} onClick={() => apply(asList, "item da lista")} title="Lista com marcadores">
           ≡ Lista
         </button>
@@ -120,6 +155,7 @@ function TextBlockEditor({
         rows={6}
         className="w-full resize-y rounded-lg border border-neutral-200 bg-transparent p-3 text-sm leading-7 dark:border-neutral-700"
       />
+      <AlignPicker value={align} onChange={onAlign} />
       <p className="text-[11px] text-neutral-400">
         💡 Para abrir um novo parágrafo, deixe uma linha em branco. Selecione o
         texto e use os botões acima para formatar — o resultado aparece na
@@ -415,22 +451,46 @@ function PublishForm() {
                     <TextBlockEditor
                       value={block.content}
                       onChange={(v) => setBlock(idx, { ...block, content: v })}
+                      align={"align" in block ? block.align : undefined}
+                      onAlign={(a) => setBlock(idx, { ...block, align: a })}
                     />
                   )}
                   {block.type === "heading" && (
-                    <input
-                      value={block.content}
-                      onChange={(e) => setBlock(idx, { ...block, content: e.target.value })}
-                      className="font-display w-full rounded-lg border border-neutral-200 bg-transparent p-2 text-lg font-bold dark:border-neutral-700"
-                    />
+                    <div className="space-y-2">
+                      <div className="flex flex-wrap gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => setBlock(idx, { ...block, level: 2 })}
+                          className={`${toolBtn} ${block.level !== 3 ? "ring-2 ring-[var(--accent)]" : ""}`}
+                        >
+                          🔠 Título grande
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setBlock(idx, { ...block, level: 3 })}
+                          className={`${toolBtn} ${block.level === 3 ? "ring-2 ring-[var(--accent)]" : ""}`}
+                        >
+                          🔹 Título médio
+                        </button>
+                      </div>
+                      <input
+                        value={block.content}
+                        onChange={(e) => setBlock(idx, { ...block, content: e.target.value })}
+                        className="font-display w-full rounded-lg border border-neutral-200 bg-transparent p-2 text-lg font-bold dark:border-neutral-700"
+                      />
+                      <AlignPicker value={block.align} onChange={(a) => setBlock(idx, { ...block, align: a })} />
+                    </div>
                   )}
                   {block.type === "quote" && (
-                    <textarea
-                      value={block.content}
-                      onChange={(e) => setBlock(idx, { ...block, content: e.target.value })}
-                      rows={2}
-                      className="w-full resize-y rounded-lg border border-neutral-200 bg-transparent p-3 text-sm italic dark:border-neutral-700"
-                    />
+                    <div className="space-y-2">
+                      <textarea
+                        value={block.content}
+                        onChange={(e) => setBlock(idx, { ...block, content: e.target.value })}
+                        rows={2}
+                        className="w-full resize-y rounded-lg border border-neutral-200 bg-transparent p-3 text-sm italic dark:border-neutral-700"
+                      />
+                      <AlignPicker value={block.align} onChange={(a) => setBlock(idx, { ...block, align: a })} />
+                    </div>
                   )}
                   {block.type === "image" && (
                     <MediaField

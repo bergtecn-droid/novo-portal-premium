@@ -1,9 +1,16 @@
 import type { ReactNode } from "react";
 
 function inline(text: string, keyPrefix: string): ReactNode[] {
-  const parts = text.split(/(\*\*[^*]+\*\*|__[^_]+__|\*[^*\n]+\*|\[[^\]]+\]\([^)\s]+\))/g);
+  const parts = text.split(/(\*\*[^*]+\*\*|==[^=]+==|__[^_]+__|\*[^*\n]+\*|\[[^\]]+\]\([^)\s]+\))/g);
   return parts.filter(Boolean).map((part, i) => {
     const key = `${keyPrefix}-${i}`;
+    if (part.startsWith("==") && part.endsWith("==") && part.length > 4) {
+      return (
+        <mark key={key} className="rounded bg-[var(--accent-wash)] px-1 font-semibold text-[var(--accent-strong)] dark:bg-[var(--accent-wash-dark)] dark:text-[var(--accent-strong-dark)]">
+          {part.slice(2, -2)}
+        </mark>
+      );
+    }
     if (part.startsWith("**") && part.endsWith("**") && part.length > 4) {
       return (
         <strong key={key} className="font-bold">
