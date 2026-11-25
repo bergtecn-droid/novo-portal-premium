@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { ArticleView } from "@/components/article-view";
 import { findArticle, sortArticles } from "@/lib/articles";
+import { readPublished } from "@/lib/server-articles";
 import { seedArticles } from "@/lib/seed";
 
 const siteUrl =
@@ -12,7 +13,8 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const article = findArticle(sortArticles(seedArticles), slug);
+  const serverList = await readPublished();
+  const article = findArticle([...serverList, ...sortArticles(seedArticles)], slug);
 
   if (!article || article.status !== "publicado") {
     return { title: "Matéria não encontrada — Portal Nova" };

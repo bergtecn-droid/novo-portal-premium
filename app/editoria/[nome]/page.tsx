@@ -1,25 +1,16 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { ArticleCard } from "@/components/article-card";
-import { publishedArticles } from "@/lib/store";
-import type { Article } from "@/lib/types";
+import { usePublishedArticles } from "@/lib/store";
 import { useSettings } from "@/lib/settings";
 
 export default function EditoriaPage() {
   const params = useParams<{ nome: string }>();
   const settings = useSettings();
-  const [articles, setArticles] = useState<Article[]>([]);
-
-  useEffect(() => {
-    const load = () => setArticles(publishedArticles());
-    load();
-    window.addEventListener("portal-nova.update", load);
-    return () => window.removeEventListener("portal-nova.update", load);
-  }, []);
+  const articles = usePublishedArticles();
 
   const nome = decodeURIComponent(params.nome || "");
   const titulo =

@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import type { Article } from "./types";
 import { seedArticles } from "./seed";
 import { sortArticles, slugify, findArticle } from "./articles";
@@ -132,5 +133,58 @@ export function restoreBackup(data: BackupPayload) {
   write(data.articles);
   if (Array.isArray(data.quickActions) && data.quickActions.length > 0) {
     saveQuickActions(data.quickActions);
+  }
+}
+
+export function mergeWithRemote(local: Article[], remote: Article[]): Article[] {
+  const byId = new Map(local.map((a) => [a.id, a]));
+  for (const a of remote) if (!byId.has(a.id)) byId.set(a.id, a);
+  return sortArticles([...byId.values()]);
+}
+
+export function usePublishedArticles(): Article[] {
+  const [local, setLocal] = useState<Article[]>([]);
+  const [remote, setRemote] = useState<Article[]>([]);
+
+  useEffect(() => {
+    const load = () => setLocal(publishedArticles());
+    load();
+    window.addEventListener("portal-nova.update", load);
+    return () => window.removeEventListener("portal-nova.update", load);
+  }, []);
+
+  useEffect(() => {
+    fetch("/api/published")
+      .then((r) => (r.ok ? r.json() : { articles: [] }))
+      .then((d) => setRemote(Array.isArray(d.articles) ? d.articles : []))
+      .catch(() => {});
+  }, []);
+
+  return mergeWithRemote(local, remote);
+}
+
+export async function syncArticleToServer(article: Article): Promise<boolean> {
+  try {
+    const res = await fetch("/api/admin/sync", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ article }),
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+export async function deleteArticleFromServer(slug: string): Promise<boolean> {
+  try {
+    const res = await fetch("/api/admin/sync", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ slug }),
+    });
+    return res.ok;
+  } catch {
+    return false;
   }
 }

@@ -7,12 +7,14 @@ import { fileToResizedDataUrl } from "@/lib/image";
 import { loadSettings, saveSettings, useSettings } from "@/lib/settings";
 import type { PortalSettings } from "@/lib/settings";
 import {
+  deleteArticleFromServer,
   formatDate,
   listArticles,
   listQuickActions,
   deleteArticle,
   upsertArticle,
   saveQuickActions,
+  syncArticleToServer,
   defaultQuickActions,
   exportBackup,
   parseBackup,
@@ -580,13 +582,17 @@ export default function AdminPage() {
                 <div className="flex gap-1">
                   {a.status !== "publicado" && (
                     <button
-                      onClick={() =>
-                        upsertArticle({
+                      onClick={async () => {
+                        const published = {
                           ...a,
-                          status: "publicado",
+                          status: "publicado" as const,
                           publishedAt: new Date().toISOString(),
-                        })
-                      }
+                        };
+                        upsertArticle(published);
+                        await deleteArticleFromServer(a.slug);
+                        await syncArticleToServer(published);
+                        setArticles(listArticles());
+                      }}
                       className="rounded-lg bg-emerald-500/10 px-3 py-1.5 text-xs font-bold text-emerald-600 transition hover:bg-emerald-500/20 dark:text-emerald-400"
                     >
                       Publicar
@@ -599,7 +605,11 @@ export default function AdminPage() {
                     Editar
                   </Link>
                   <button
-                    onClick={() => deleteArticle(a.id)}
+                    onClick={async () => {
+                      deleteArticle(a.id);
+                      await deleteArticleFromServer(a.slug);
+                      setArticles(listArticles());
+                    }}
                     className="rounded-lg bg-red-500/10 px-3 py-1.5 text-xs font-bold text-red-500 transition hover:bg-red-500/20"
                   >
                     Excluir

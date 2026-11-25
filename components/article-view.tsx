@@ -25,11 +25,20 @@ export function ArticleView({ slug }: { slug: string }) {
   useEffect(() => {
     const load = () => {
       const found = getArticle(slug);
-      if (!found || found.status !== "publicado") {
-        setArticle(null);
+      if (found && found.status === "publicado") {
+        setArticle(found);
         return;
       }
-      setArticle(found);
+      setArticle(null);
+      fetch("/api/published")
+        .then((r) => (r.ok ? r.json() : { articles: [] }))
+        .then((d) => {
+          const remote = (Array.isArray(d.articles) ? d.articles : []).find(
+            (a: Article) => a.slug === slug && a.status === "publicado",
+          );
+          if (remote) setArticle(remote);
+        })
+        .catch(() => {});
     };
     load();
     window.addEventListener("portal-nova.update", load);

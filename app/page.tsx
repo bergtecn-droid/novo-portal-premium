@@ -6,20 +6,12 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { ArticleCard } from "@/components/article-card";
 import { useSettings } from "@/lib/settings";
-import { publishedArticles } from "@/lib/store";
-import { seedArticles } from "@/lib/seed";
+import { usePublishedArticles } from "@/lib/store";
 import type { Article } from "@/lib/types";
 
 export default function HomePage() {
   const settings = useSettings();
-  const [articles, setArticles] = useState<Article[]>(seedArticles);
-
-  useEffect(() => {
-    const load = () => setArticles(publishedArticles());
-    load();
-    window.addEventListener("portal-nova.update", load);
-    return () => window.removeEventListener("portal-nova.update", load);
-  }, []);
+  const articles = usePublishedArticles();
 
   const [hero, ...rest] = articles;
   const secondary = rest.slice(0, 3);

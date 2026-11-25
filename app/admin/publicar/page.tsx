@@ -6,7 +6,7 @@ import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { MediaField } from "@/components/media-field";
 import { MediaRenderer } from "@/components/media-render";
 import { useSettings } from "@/lib/settings";
-import { getArticle, slugify, upsertArticle } from "@/lib/store";
+import { getArticle, slugify, syncArticleToServer, upsertArticle } from "@/lib/store";
 import type { Align, Article, Block, Editoria, MediaItem, Status } from "@/lib/types";
 
 const blankArticle = (): Article => ({
@@ -227,11 +227,11 @@ function PublishForm() {
     setBlock(idx, { ...block, items });
   };
 
-  const save = (status: Status) => {
+  const save = async (status: Status) => {
     const title = article.title.trim() || "Matéria sem título";
     const id = article.id || crypto.randomUUID();
     const slug = article.slug || slugify(title) || id.slice(0, 8);
-    upsertArticle({
+    const saved: Article = {
       ...article,
       id,
       slug,
@@ -239,7 +239,14 @@ function PublishForm() {
       status,
       tags: tagsText.split(",").map((t) => t.trim()).filter(Boolean),
       publishedAt: article.publishedAt,
-    });
+    };
+    upsertArticle(saved);
+    if (status === "publicado") {
+      const ok = await syncArticleToServer(saved);
+      if (!ok) {
+        console.warn("Não foi possível sincronizar com o servidor.");
+      }
+    }
     window.location.href = "/admin";
   };
 

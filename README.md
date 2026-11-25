@@ -53,3 +53,23 @@ O portal tem 9 temas (Padrão, Natal, Ano Novo, Páscoa, Festa Junina, Verão, O
 
 - Portal: `https://novo-portal-premium.vercel.app`
 - Admin: `https://novo-portal-premium.vercel.app/admin`
+
+## 🗄️ Armazenamento na nuvem (compartilhamento entre dispositivos)
+
+As matérias publicadas pelo painel sincronizam automaticamente com o servidor
+quando o armazenamento Vercel Blob está ativado (até lá, ficam salvas no
+navegador de quem publicou).
+
+### Ativar em 2 minutos (no plano Hobby, grátis):
+
+1. Acesse o projeto em [vercel.com/dashboard](https://vercel.com/dashboard)
+2. Aba **Storage** → **Create Database** → escolha **Blob** → **Continue**
+   → nome qualquer (ex: `portal-nova`) → **Create**
+3. Na tela seguinte, clique em **Connect to Project** e selecione
+   `novo-portal-premium` → **Connect**
+4. Faça um **Redeploy** (aba Deployments → ⋯ → Redeploy) para a variável
+   `BLOB_READ_WRITE_TOKEN` ser injetada
+
+Pronto: ao publicar matéria no painel, ela sobe para o servidor e o link
+compartilhado no WhatsApp abre para qualquer pessoa (com foto na prévia,
+quando a capa estiver disponível publicamente).
