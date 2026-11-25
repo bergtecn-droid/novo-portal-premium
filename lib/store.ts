@@ -94,3 +94,43 @@ export function saveQuickActions(actions: QuickAction[]) {
   localStorage.setItem(ACTIONS_KEY, JSON.stringify(actions));
   window.dispatchEvent(new Event("portal-nova.update"));
 }
+
+export interface BackupPayload {
+  version: number;
+  exportedAt: string;
+  articles: Article[];
+  quickActions?: QuickAction[];
+}
+
+export function exportBackup(): string {
+  return JSON.stringify(
+    {
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      articles: read(),
+      quickActions: listQuickActions(),
+    },
+    null,
+    2,
+  );
+}
+
+export function parseBackup(text: string): BackupPayload | null {
+  try {
+    const data = JSON.parse(text) as BackupPayload;
+    if (!data || !Array.isArray(data.articles)) return null;
+    const valid = data.articles.every(
+      (a) => a && typeof a.id === "string" && typeof a.title === "string",
+    );
+    return valid ? data : null;
+  } catch {
+    return null;
+  }
+}
+
+export function restoreBackup(data: BackupPayload) {
+  write(data.articles);
+  if (Array.isArray(data.quickActions) && data.quickActions.length > 0) {
+    saveQuickActions(data.quickActions);
+  }
+}

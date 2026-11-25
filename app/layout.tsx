@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { RadioPlayer } from "@/components/radio-player";
 import "./globals.css";
 
 const siteUrl =
@@ -43,8 +44,9 @@ export default function RootLayout({
         />
         <script dangerouslySetInnerHTML={{ __html: themeInit }} />
       </head>
-      <body className="bg-neutral-50 text-neutral-900 antialiased dark:bg-[#0b1120] dark:text-neutral-100">
+      <body className="bg-neutral-50 pb-28 text-neutral-900 antialiased dark:bg-[#0b1120] dark:text-neutral-100">
         {children}
+        <RadioPlayer />
       </body>
     </html>
   );

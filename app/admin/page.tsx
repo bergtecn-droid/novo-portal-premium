@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { formatDate, listArticles, listQuickActions, deleteArticle, upsertArticle, saveQuickActions, defaultQuickActions } from "@/lib/store";
+import { formatDate, listArticles, listQuickActions, deleteArticle, upsertArticle, saveQuickActions, defaultQuickActions, exportBackup, parseBackup, restoreBackup } from "@/lib/store";
 import type { Article, Status } from "@/lib/types";
 
 const statusStyle: Record<Status, string> = {
@@ -25,6 +25,8 @@ export default function AdminPage() {
   const [actions, setActions] = useState(defaultQuickActions);
   const [adding, setAdding] = useState(false);
   const [newAction, setNewAction] = useState({ label: "", icon: "📝", href: "/" });
+  const [backupMsg, setBackupMsg] = useState("");
+  const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const load = () => {
@@ -221,6 +223,69 @@ export default function AdminPage() {
               </div>
             ))}
           </div>
+        </section>
+
+        <section className="rounded-2xl border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-[#0f1a30]">
+          <h2 className="font-display text-lg font-bold">💾 Backup do portal</h2>
+          <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+            Baixe uma cópia de segurança com todas as matérias e ações rápidas.
+            Guarde o arquivo — se algo der problema, restaure em segundos.
+          </p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <button
+              onClick={() => {
+                const blob = new Blob([exportBackup()], { type: "application/json" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = `backup-portal-nova-${new Date().toISOString().slice(0, 10)}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+                setBackupMsg("✅ Backup baixado. Guarde o arquivo em local seguro.");
+              }}
+              className="rounded-full bg-amber-500 px-4 py-2 text-sm font-bold text-neutral-950 transition hover:bg-amber-400"
+            >
+              ⬇️ Baixar backup
+            </button>
+            <button
+              onClick={() => fileRef.current?.click()}
+              className="rounded-full border border-neutral-300 px-4 py-2 text-sm font-semibold transition hover:border-amber-500 dark:border-neutral-700"
+            >
+              ⬆️ Restaurar backup
+            </button>
+            <input
+              ref={fileRef}
+              type="file"
+              accept="application/json,.json"
+              className="hidden"
+              onChange={async (e) => {
+                const file = e.target.files?.[0];
+                e.target.value = "";
+                if (!file) return;
+                const text = await file.text();
+                const data = parseBackup(text);
+                if (!data) {
+                  setBackupMsg("❌ Arquivo inválido. Use um backup gerado por este portal.");
+                  return;
+                }
+                const ok = window.confirm(
+                  `Restaurar backup com ${data.articles.length} matérias? Isso substitui tudo o que está no portal agora.`,
+                );
+                if (!ok) return;
+                restoreBackup(data);
+                setArticles(listArticles());
+                setActions(listQuickActions());
+                setBackupMsg(
+                  `✅ Backup restaurado: ${data.articles.length} matérias recarregadas.`,
+                );
+              }}
+            />
+          </div>
+          {backupMsg && (
+            <p className="mt-3 rounded-lg bg-neutral-100 px-3 py-2 text-sm dark:bg-neutral-800/60">
+              {backupMsg}
+            </p>
+          )}
         </section>
 
         <section id="materias" className="rounded-2xl border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-[#0f1a30]">
