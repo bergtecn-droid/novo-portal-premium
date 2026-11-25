@@ -22,9 +22,9 @@ export function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-neutral-200 bg-white/90 backdrop-blur dark:border-neutral-800 dark:bg-[#0b1120]/90">
-      <div className="ticker overflow-hidden bg-amber-500 text-[13px] font-semibold text-neutral-950">
+      <div className="ticker overflow-hidden bg-[var(--accent)] text-[13px] font-semibold text-neutral-950">
         <div className="flex items-center gap-3 px-4 py-1.5">
-          <span className="relative z-10 shrink-0 rounded-full bg-neutral-950 px-2 py-0.5 text-[11px] uppercase tracking-wide text-amber-400">
+          <span className="relative z-10 shrink-0 rounded-full bg-neutral-950 px-2 py-0.5 text-[11px] uppercase tracking-wide text-[var(--accent-strong)]">
             Últimas
           </span>
           <div
@@ -52,7 +52,7 @@ export function SiteHeader() {
           <span className="font-display text-3xl font-bold tracking-tight text-neutral-900 dark:text-white">
             Nova
           </span>
-          <span className="rounded bg-amber-500 px-1.5 py-0.5 text-[11px] font-bold uppercase tracking-widest text-neutral-950">
+          <span className="rounded bg-[var(--accent)] px-1.5 py-0.5 text-[11px] font-bold uppercase tracking-widest text-neutral-950">
             Portal
           </span>
         </Link>
@@ -62,7 +62,7 @@ export function SiteHeader() {
             <Link
               key={e}
               href={`/editoria/${encodeURIComponent(e.toLowerCase())}`}
-              className="rounded-full px-3 py-1.5 text-sm font-medium text-neutral-600 transition hover:bg-amber-100 hover:text-neutral-950 dark:text-neutral-300 dark:hover:bg-neutral-800 dark:hover:text-amber-400"
+              className="rounded-full px-3 py-1.5 text-sm font-medium text-neutral-600 transition hover:bg-[var(--accent-wash)] hover:text-neutral-950 dark:text-neutral-300 dark:hover:bg-neutral-800 dark:hover:text-[var(--accent-strong)]"
             >
               {e}
             </Link>
@@ -73,7 +73,7 @@ export function SiteHeader() {
           <ThemeToggle />
           <Link
             href="/admin"
-            className="rounded-full bg-neutral-900 px-4 py-2 text-sm font-semibold text-amber-400 shadow-sm transition hover:bg-neutral-700 dark:bg-amber-500 dark:text-neutral-950 dark:hover:bg-amber-400"
+            className="rounded-full bg-neutral-900 px-4 py-2 text-sm font-semibold text-[var(--accent-strong)] shadow-sm transition hover:bg-neutral-700 dark:bg-[var(--accent)] dark:text-neutral-950 dark:hover:bg-[var(--accent-soft)]"
           >
             Admin
           </Link>

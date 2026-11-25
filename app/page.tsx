@@ -44,7 +44,7 @@ export default function HomePage() {
             </p>
             <Link
               href="/admin/publicar"
-              className="mt-4 inline-block rounded-full bg-amber-500 px-6 py-2.5 font-semibold text-neutral-950"
+              className="mt-4 inline-block rounded-full bg-[var(--accent)] px-6 py-2.5 font-semibold text-neutral-950"
             >
               Publicar matéria
             </Link>
@@ -89,7 +89,7 @@ export default function HomePage() {
                   <h2 className="font-display flex items-center gap-3 text-xl font-bold">
                     <Link
                       href={`/editoria/${encodeURIComponent(editoria.toLowerCase())}`}
-                      className="border-l-4 border-amber-500 pl-3 hover:text-amber-600"
+                      className="border-l-4 border-[var(--accent)] pl-3 hover:text-[var(--accent-strong)]"
                     >
                       {editoria}
                     </Link>
@@ -117,12 +117,12 @@ export default function HomePage() {
               </div>
             </section>
 
-            <section className="rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 p-6 text-neutral-950">
+            <section className="rounded-2xl bg-gradient-to-br from-[var(--accent)] to-[var(--accent-deep)] p-6 text-neutral-950">
               <h3 className="font-display text-xl font-bold">Anuncie aqui</h3>
               <p className="mt-2 text-sm font-medium">
                 Seu negócio visto por milhares de leitores todos os dias.
               </p>
-              <button className="mt-4 rounded-full bg-neutral-950 px-5 py-2 text-sm font-bold text-amber-400 transition hover:bg-neutral-800">
+              <button className="mt-4 rounded-full bg-neutral-950 px-5 py-2 text-sm font-bold text-[var(--accent-strong)] transition hover:bg-neutral-800">
                 Quero anunciar
               </button>
             </section>
@@ -139,7 +139,7 @@ export default function HomePage() {
                 placeholder="seu@email.com"
                 className="mt-3 w-full rounded-lg border border-neutral-300 bg-transparent px-3 py-2 text-sm dark:border-neutral-700"
               />
-              <button className="mt-2 w-full rounded-lg bg-neutral-900 px-3 py-2 text-sm font-semibold text-amber-400 dark:bg-amber-500 dark:text-neutral-950">
+              <button className="mt-2 w-full rounded-lg bg-neutral-900 px-3 py-2 text-sm font-semibold text-[var(--accent-strong)] dark:bg-[var(--accent)] dark:text-neutral-950">
                 Inscrever
               </button>
             </section>

@@ -9,8 +9,8 @@ function Caption({ text, position }: { text?: string; position: "top" | "bottom"
     <p
       className={
         position === "top"
-          ? "mb-1.5 text-xs font-bold uppercase tracking-widest text-amber-600 dark:text-amber-400"
-          : "mt-2 border-l-2 border-amber-500 pl-3 text-sm italic text-neutral-500 dark:text-neutral-400"
+          ? "mb-1.5 text-xs font-bold uppercase tracking-widest text-[var(--accent-strong)] dark:text-[var(--accent-strong)]"
+          : "mt-2 border-l-2 border-[var(--accent)] pl-3 text-sm italic text-neutral-500 dark:text-neutral-400"
       }
     >
       {text}
@@ -110,13 +110,13 @@ export function MediaRenderer({ blocks }: { blocks: Block[] }) {
             return (
               <blockquote
                 key={i}
-                className="rounded-r-xl border-l-4 border-amber-500 bg-amber-50 py-4 pl-5 pr-4 dark:bg-neutral-800/60"
+                className="rounded-r-xl border-l-4 border-[var(--accent)] bg-[var(--accent-wash)] py-4 pl-5 pr-4 dark:bg-neutral-800/60"
               >
                 <p className="font-display text-xl italic leading-relaxed text-neutral-800 dark:text-neutral-200">
                   “{block.content}”
                 </p>
                 {block.author && (
-                  <footer className="mt-2 text-sm font-semibold text-amber-700 dark:text-amber-400">
+                  <footer className="mt-2 text-sm font-semibold text-[var(--accent-strong)] dark:text-[var(--accent-strong)]">
                     — {block.author}
                   </footer>
                 )}

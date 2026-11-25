@@ -40,3 +40,11 @@ O `/admin` exige login.
 - Senha padrão do demo: `nova-admin-2025` — troque em produção!
 - Para definir sua senha: variável de ambiente `ADMIN_PASSWORD` (Vercel: *Project → Settings → Environment Variables*) + redeploy.
 - A sessão dura 30 dias (cookie `HttpOnly`).
+
+## 🎨 Temas sazonais
+
+O portal tem 9 temas (Padrão, Natal, Ano Novo, Páscoa, Festa Junina, Verão, Outono, Inverno, Primavera) que trocam a cor de destaque de todo o site.
+
+- Configurado no painel admin → seção **"🎨 Tema do portal"**.
+- Modo **Automático**: o tema muda sozinho pelo calendário (Natal em dezembro, Ano Novo em janeiro, Páscoa em abril, Junina em junho/julho e as estações no resto do ano).
+- As cores são variáveis CSS (`--accent`, `--accent-soft`, `--accent-deep`, `--accent-wash`, `--accent-strong`) definidas em `app/globals.css` — novos temas são uma linha nova de CSS.

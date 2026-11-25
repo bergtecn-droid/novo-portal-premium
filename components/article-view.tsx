@@ -73,7 +73,7 @@ export function ArticleView({ slug }: { slug: string }) {
           </p>
           <button
             onClick={() => router.push("/")}
-            className="mt-6 rounded-full bg-amber-500 px-6 py-2.5 font-semibold text-neutral-950"
+            className="mt-6 rounded-full bg-[var(--accent)] px-6 py-2.5 font-semibold text-neutral-950"
           >
             Voltar para a home
           </button>
@@ -89,13 +89,13 @@ export function ArticleView({ slug }: { slug: string }) {
 
       <main className="mx-auto max-w-4xl px-4 py-8">
         <nav className="mb-6 text-sm text-neutral-500">
-          <Link href="/" className="hover:text-amber-600">
+          <Link href="/" className="hover:text-[var(--accent-strong)]">
             Início
           </Link>{" "}
           /{" "}
           <Link
             href={`/editoria/${encodeURIComponent(article.editoria.toLowerCase())}`}
-            className="font-semibold text-amber-600 dark:text-amber-400"
+            className="font-semibold text-[var(--accent-strong)] dark:text-[var(--accent-strong)]"
           >
             {article.editoria}
           </Link>
@@ -103,7 +103,7 @@ export function ArticleView({ slug }: { slug: string }) {
 
         <article className="animate-fade-up">
           <header>
-            <span className="rounded-full bg-amber-500 px-3 py-1 text-xs font-bold uppercase tracking-wider text-neutral-950">
+            <span className="rounded-full bg-[var(--accent)] px-3 py-1 text-xs font-bold uppercase tracking-wider text-neutral-950">
               {article.editoria}
             </span>
             <h1 className="font-display mt-4 text-3xl font-bold leading-tight md:text-5xl">
@@ -121,7 +121,7 @@ export function ArticleView({ slug }: { slug: string }) {
               <span className="ml-auto flex gap-2">
                 <button
                   onClick={share}
-                  className="rounded-full border border-neutral-300 px-3 py-1 text-xs font-semibold transition hover:border-amber-500 dark:border-neutral-700"
+                  className="rounded-full border border-neutral-300 px-3 py-1 text-xs font-semibold transition hover:border-[var(--accent)] dark:border-neutral-700"
                 >
                   {copied ? "Link copiado ✓" : "↗ Compartilhar"}
                 </button>
@@ -129,7 +129,7 @@ export function ArticleView({ slug }: { slug: string }) {
                   href={`https://api.whatsapp.com/send?text=${encodeURIComponent(article.title)}`}
                   target="_blank"
                   rel="noreferrer"
-                  className="rounded-full border border-neutral-300 px-3 py-1 text-xs font-semibold transition hover:border-amber-500 dark:border-neutral-700"
+                  className="rounded-full border border-neutral-300 px-3 py-1 text-xs font-semibold transition hover:border-[var(--accent)] dark:border-neutral-700"
                 >
                   WhatsApp
                 </a>
@@ -145,7 +145,7 @@ export function ArticleView({ slug }: { slug: string }) {
                 className="w-full rounded-2xl shadow-lg"
               />
               {article.coverCaption && (
-                <figcaption className="mt-2 border-l-2 border-amber-500 pl-3 text-sm italic text-neutral-500 dark:text-neutral-400">
+                <figcaption className="mt-2 border-l-2 border-[var(--accent)] pl-3 text-sm italic text-neutral-500 dark:text-neutral-400">
                   {article.coverCaption}
                 </figcaption>
               )}

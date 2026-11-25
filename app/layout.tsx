@@ -23,9 +23,25 @@ export const metadata: Metadata = {
 };
 
 const themeInit = `
+function autoTheme() {
+  var m = new Date().getMonth();
+  if (m === 11) return "natal";
+  if (m === 0) return "anonovo";
+  if (m === 3 || m === 4) return "pascoa";
+  if (m === 5 || m === 6) return "junina";
+  if (m >= 8 && m <= 10) return "primavera";
+  if (m >= 2 && m <= 4) return "outono";
+  if (m >= 5 && m <= 7) return "inverno";
+  return "verao";
+}
 try {
-  const t = localStorage.getItem("portal-nova.theme");
-  if (t === "dark" || (!t && window.matchMedia("(prefers-color-scheme: dark)").matches)) {
+  var t = localStorage.getItem("portal-nova.themeSeason") || "auto";
+  var seasonal = t === "auto" ? autoTheme() : t;
+  if (seasonal && seasonal !== "padrao") {
+    document.documentElement.setAttribute("data-theme", seasonal);
+  }
+  var mode = localStorage.getItem("portal-nova.theme");
+  if (mode === "dark" || (!mode && window.matchMedia("(prefers-color-scheme: dark)").matches)) {
     document.documentElement.classList.add("dark");
   }
 } catch (e) {}

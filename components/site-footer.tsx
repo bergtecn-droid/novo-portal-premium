@@ -8,7 +8,7 @@ export function SiteFooter() {
         <div>
           <div className="flex items-baseline gap-1.5">
             <span className="font-display text-2xl font-bold">Nova</span>
-            <span className="rounded bg-amber-500 px-1.5 py-0.5 text-[11px] font-bold uppercase tracking-widest text-neutral-950">
+            <span className="rounded bg-[var(--accent)] px-1.5 py-0.5 text-[11px] font-bold uppercase tracking-widest text-neutral-950">
               Portal
             </span>
           </div>
@@ -26,7 +26,7 @@ export function SiteFooter() {
               <li key={e}>
                 <Link
                   href={`/editoria/${encodeURIComponent(e.toLowerCase())}`}
-                  className="hover:text-amber-600"
+                  className="hover:text-[var(--accent-strong)]"
                 >
                   {e}
                 </Link>

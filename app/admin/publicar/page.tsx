@@ -131,14 +131,14 @@ function PublishForm() {
       <header className="border-b border-neutral-200 bg-white dark:border-neutral-800 dark:bg-[#0f1a30]">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
           <Link href="/admin" className="font-display text-lg font-bold">
-            ← Nova <span className="text-amber-500">• Painel</span>
+            ← Nova <span className="text-[var(--accent-strong)]">• Painel</span>
           </Link>
           <div className="flex items-center gap-2">
             <button
               onClick={() => setPreview(!preview)}
               className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
                 preview
-                  ? "border-amber-500 text-amber-600 dark:text-amber-400"
+                  ? "border-[var(--accent)] text-[var(--accent-strong)] dark:text-[var(--accent-strong)]"
                   : "border-neutral-300 dark:border-neutral-700"
               }`}
             >
@@ -241,7 +241,7 @@ function PublishForm() {
                 <button
                   key={type}
                   onClick={() => addBlock(type as Block["type"])}
-                  className="rounded-full bg-neutral-100 px-3 py-1.5 text-xs font-semibold transition hover:bg-amber-100 dark:bg-neutral-800 dark:hover:bg-amber-900/40"
+                  className="rounded-full bg-neutral-100 px-3 py-1.5 text-xs font-semibold transition hover:bg-[var(--accent-wash)] dark:bg-neutral-800 dark:hover:bg-[var(--accent-wash)]"
                 >
                   {icon} {label}
                 </button>
@@ -424,7 +424,7 @@ function PublishForm() {
                           });
                           setBlock(idx, { ...g });
                         }}
-                        className="w-full rounded-lg border border-dashed border-neutral-300 py-2 text-xs font-semibold text-neutral-500 hover:border-amber-500 dark:border-neutral-600"
+                        className="w-full rounded-lg border border-dashed border-neutral-300 py-2 text-xs font-semibold text-neutral-500 hover:border-[var(--accent)] dark:border-neutral-600"
                       >
                         + Adicionar foto à galeria
                       </button>
@@ -442,7 +442,7 @@ function PublishForm() {
               Prévia — como fica no portal
             </h2>
             <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-[#0f1a30]">
-              <span className="rounded-full bg-amber-500 px-3 py-1 text-xs font-bold uppercase tracking-wider text-neutral-950">
+              <span className="rounded-full bg-[var(--accent)] px-3 py-1 text-xs font-bold uppercase tracking-wider text-neutral-950">
                 {article.editoria}
               </span>
               <h1 className="font-display mt-3 text-3xl font-bold leading-tight">

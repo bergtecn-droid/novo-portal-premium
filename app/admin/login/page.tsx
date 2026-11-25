@@ -39,7 +39,7 @@ const LoginPage: NextPage = () => {
         <div className="mb-6 flex items-center justify-between">
           <div className="flex items-baseline gap-1.5">
             <span className="font-display text-2xl font-bold">Nova</span>
-            <span className="rounded bg-amber-500 px-1.5 py-0.5 text-[11px] font-bold uppercase tracking-widest text-neutral-950">
+            <span className="rounded bg-[var(--accent)] px-1.5 py-0.5 text-[11px] font-bold uppercase tracking-widest text-neutral-950">
               Admin
             </span>
           </div>
@@ -58,7 +58,7 @@ const LoginPage: NextPage = () => {
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Senha do painel"
             autoFocus
-            className="w-full rounded-lg border border-neutral-300 bg-transparent px-4 py-3 text-sm outline-none focus:border-amber-500 dark:border-neutral-700"
+            className="w-full rounded-lg border border-neutral-300 bg-transparent px-4 py-3 text-sm outline-none focus:border-[var(--accent)] dark:border-neutral-700"
           />
           {error && (
             <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600 dark:bg-red-950/40 dark:text-red-400">
@@ -68,7 +68,7 @@ const LoginPage: NextPage = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-lg bg-amber-500 py-3 text-sm font-bold text-neutral-950 transition hover:bg-amber-400 disabled:opacity-60"
+            className="w-full rounded-lg bg-[var(--accent)] py-3 text-sm font-bold text-neutral-950 transition hover:bg-[var(--accent-soft)] disabled:opacity-60"
           >
             {loading ? "Entrando…" : "Entrar"}
           </button>
@@ -76,7 +76,7 @@ const LoginPage: NextPage = () => {
 
         <a
           href="/"
-          className="mt-6 block text-center text-xs text-neutral-400 hover:text-amber-600"
+          className="mt-6 block text-center text-xs text-neutral-400 hover:text-[var(--accent-strong)]"
         >
           ← Voltar para o portal
         </a>

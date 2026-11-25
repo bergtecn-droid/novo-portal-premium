@@ -31,7 +31,7 @@ export default function EditoriaPage() {
     <div className="min-h-screen">
       <SiteHeader />
       <main className="mx-auto max-w-6xl px-4 py-8">
-        <h1 className="font-display border-l-4 border-amber-500 pl-4 text-3xl font-bold md:text-4xl">
+        <h1 className="font-display border-l-4 border-[var(--accent)] pl-4 text-3xl font-bold md:text-4xl">
           {titulo}
         </h1>
         <p className="mt-2 pl-5 text-neutral-500 dark:text-neutral-400">

@@ -24,7 +24,7 @@ export function ArticleCard({
         />
         <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-950/40 to-transparent" />
         <div className="absolute bottom-0 p-6 text-white md:p-8">
-          <span className="rounded-full bg-amber-500 px-3 py-1 text-xs font-bold uppercase tracking-wider text-neutral-950">
+          <span className="rounded-full bg-[var(--accent)] px-3 py-1 text-xs font-bold uppercase tracking-wider text-neutral-950">
             {article.editoria}
           </span>
           <h2 className="font-display mt-3 max-w-3xl text-3xl font-bold leading-tight md:text-4xl">
@@ -51,7 +51,7 @@ export function ArticleCard({
           className="h-16 w-24 shrink-0 rounded-lg object-cover"
         />
         <div>
-          <h4 className="line-clamp-2 text-sm font-semibold leading-snug group-hover:text-amber-600 dark:group-hover:text-amber-400">
+          <h4 className="line-clamp-2 text-sm font-semibold leading-snug group-hover:text-[var(--accent-strong)] dark:group-hover:text-[var(--accent-strong)]">
             {article.title}
           </h4>
           <p className="mt-1 text-xs text-neutral-400">
@@ -75,7 +75,7 @@ export function ArticleCard({
         />
       </div>
       <div className="flex flex-1 flex-col p-4">
-        <span className="text-xs font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">
+        <span className="text-xs font-bold uppercase tracking-wider text-[var(--accent-strong)] dark:text-[var(--accent-strong)]">
           {article.editoria}
         </span>
         <h3 className="font-display mt-1.5 text-lg font-bold leading-snug group-hover:underline">

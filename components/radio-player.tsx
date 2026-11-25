@@ -78,21 +78,21 @@ export function RadioPlayer() {
           <button
             onClick={toggle}
             aria-label={playing ? "Pausar rádio" : "Tocar rádio"}
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-amber-500 text-lg text-neutral-950 shadow-md transition hover:scale-105 hover:bg-amber-400"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[var(--accent)] text-lg text-neutral-950 shadow-md transition hover:scale-105 hover:bg-[var(--accent-soft)]"
           >
             {playing ? "⏸" : "▶"}
           </button>
 
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
-              <span className="text-[10px] font-bold uppercase tracking-widest text-amber-400">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-[var(--accent-strong)]">
                 Ao vivo
               </span>
               {playing && (
                 <span className="flex h-3 items-end gap-[2px]">
-                  <i className="eq-bar h-1.5 w-[3px] rounded bg-amber-400" />
-                  <i className="eq-bar h-2.5 w-[3px] rounded bg-amber-300" />
-                  <i className="eq-bar h-1 w-[3px] rounded bg-amber-500" />
+                  <i className="eq-bar h-1.5 w-[3px] rounded bg-[var(--accent-soft)]" />
+                  <i className="eq-bar h-2.5 w-[3px] rounded bg-[var(--accent-soft)]" />
+                  <i className="eq-bar h-1 w-[3px] rounded bg-[var(--accent)]" />
                 </span>
               )}
             </div>
@@ -107,7 +107,7 @@ export function RadioPlayer() {
           <button
             onClick={() => setMuted(!muted)}
             aria-label="Mutar"
-            className="text-sm text-neutral-400 transition hover:text-amber-400"
+            className="text-sm text-neutral-400 transition hover:text-[var(--accent-strong)]"
           >
             {muted || volume === 0 ? "🔇" : volume > 0.5 ? "🔊" : "🔈"}
           </button>
@@ -129,7 +129,7 @@ export function RadioPlayer() {
                 onClick={() => changeStation(idx)}
                 className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm transition ${
                   idx === stationIdx
-                    ? "bg-amber-500/10 font-semibold text-amber-400"
+                    ? "bg-[var(--accent-wash)] font-semibold text-[var(--accent-strong)]"
                     : "text-neutral-300 hover:bg-neutral-800"
                 }`}
               >

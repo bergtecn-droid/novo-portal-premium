@@ -3,19 +3,38 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { formatDate, listArticles, listQuickActions, deleteArticle, upsertArticle, saveQuickActions, defaultQuickActions, exportBackup, parseBackup, restoreBackup } from "@/lib/store";
+import {
+  formatDate,
+  listArticles,
+  listQuickActions,
+  deleteArticle,
+  upsertArticle,
+  saveQuickActions,
+  defaultQuickActions,
+  exportBackup,
+  parseBackup,
+  restoreBackup,
+} from "@/lib/store";
+import {
+  THEMES,
+  loadThemeChoice,
+  saveThemeChoice,
+  themeById,
+} from "@/lib/themes";
 import type { Article, Status } from "@/lib/types";
 
 const statusStyle: Record<Status, string> = {
-  publicado: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400",
+  publicado:
+    "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400",
   revisao: "bg-sky-100 text-sky-700 dark:bg-sky-900/40 dark:text-sky-400",
-  rascunho: "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400",
+  rascunho:
+    "bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300",
 };
 
 const statusLabel: Record<Status, string> = {
   publicado: "🟢 Publicado",
   revisao: "🔵 Em revisão",
-  rascunho: "🟡 Rascunho",
+  rascunho: "⚪ Rascunho",
 };
 
 const ICONS = ["📝", "🖼️", "🎬", "📊", "🗑️", "⚙️", "🌐", "👤", "📢", "🔖"];
@@ -26,12 +45,14 @@ export default function AdminPage() {
   const [adding, setAdding] = useState(false);
   const [newAction, setNewAction] = useState({ label: "", icon: "📝", href: "/" });
   const [backupMsg, setBackupMsg] = useState("");
+  const [themeChoice, setThemeChoice] = useState("auto");
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const load = () => {
       setArticles(listArticles());
       setActions(listQuickActions());
+      setThemeChoice(loadThemeChoice());
     };
     load();
     window.addEventListener("portal-nova.update", load);
@@ -59,15 +80,18 @@ export default function AdminPage() {
     saveQuickActions(next);
   };
 
+  const pickTheme = (id: string) => {
+    setThemeChoice(id);
+    saveThemeChoice(id);
+  };
+
   return (
     <div className="min-h-screen">
       <header className="border-b border-neutral-200 bg-white dark:border-neutral-800 dark:bg-[#0f1a30]">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-          <div className="flex items-center gap-3">
-            <Link href="/" className="font-display text-xl font-bold">
-              Nova <span className="text-amber-500">• Admin</span>
-            </Link>
-          </div>
+          <Link href="/" className="font-display text-xl font-bold">
+            Nova <span className="text-[var(--accent-strong)]">• Admin</span>
+          </Link>
           <div className="flex items-center gap-2">
             <ThemeToggle />
             <button
@@ -81,7 +105,7 @@ export default function AdminPage() {
             </button>
             <Link
               href="/admin/publicar"
-              className="rounded-full bg-amber-500 px-4 py-2 text-sm font-bold text-neutral-950 transition hover:bg-amber-400"
+              className="rounded-full bg-[var(--accent)] px-4 py-2 text-sm font-bold text-neutral-950 transition hover:bg-[var(--accent-soft)]"
             >
               + Publicar matéria
             </Link>
@@ -102,7 +126,12 @@ export default function AdminPage() {
             { label: "Publicadas", value: publicadas.length, icon: "📰", tone: "text-emerald-500" },
             { label: "Rascunhos", value: rascunhos.length, icon: "📝", tone: "text-amber-500" },
             { label: "Em revisão", value: revisao.length, icon: "🔍", tone: "text-sky-500" },
-            { label: "Visualizações", value: totalViews.toLocaleString("pt-BR"), icon: "👁️", tone: "text-fuchsia-500" },
+            {
+              label: "Visualizações",
+              value: totalViews.toLocaleString("pt-BR"),
+              icon: "👁️",
+              tone: "text-fuchsia-500",
+            },
           ].map((card) => (
             <div
               key={card.label}
@@ -121,7 +150,10 @@ export default function AdminPage() {
           ))}
         </section>
 
-        <section id="audiencia" className="rounded-2xl border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-[#0f1a30]">
+        <section
+          id="audiencia"
+          className="rounded-2xl border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-[#0f1a30]"
+        >
           <h2 className="font-display text-lg font-bold">📈 Audiência por matéria</h2>
           <div className="mt-4 space-y-3">
             {publicadas.slice(0, 5).map((a) => (
@@ -131,7 +163,7 @@ export default function AdminPage() {
                 </span>
                 <div className="h-3 flex-1 overflow-hidden rounded-full bg-neutral-100 dark:bg-neutral-800">
                   <div
-                    className="h-full rounded-full bg-gradient-to-r from-amber-400 to-orange-500"
+                    className="h-full rounded-full bg-gradient-to-r from-[var(--accent-soft)] to-[var(--accent)]"
                     style={{ width: `${(a.views / maxViews) * 100}%` }}
                   />
                 </div>
@@ -151,7 +183,7 @@ export default function AdminPage() {
             <h2 className="font-display text-lg font-bold">⚡ Ações rápidas</h2>
             <button
               onClick={() => setAdding(!adding)}
-              className="rounded-full border border-neutral-300 px-3 py-1 text-sm font-semibold transition hover:border-amber-500 dark:border-neutral-700"
+              className="rounded-full border border-neutral-300 px-3 py-1 text-sm font-semibold transition hover:border-[var(--accent)] dark:border-neutral-700"
             >
               {adding ? "Fechar" : "+ Adicionar botão"}
             </button>
@@ -163,10 +195,7 @@ export default function AdminPage() {
               onSubmit={(e) => {
                 e.preventDefault();
                 if (!newAction.label.trim()) return;
-                const next = [
-                  ...actions,
-                  { ...newAction, id: crypto.randomUUID() },
-                ];
+                const next = [...actions, { ...newAction, id: crypto.randomUUID() }];
                 setActions(next);
                 saveQuickActions(next);
                 setNewAction({ label: "", icon: "📝", href: "/" });
@@ -179,7 +208,9 @@ export default function AdminPage() {
                 className="rounded-lg border border-neutral-300 bg-transparent px-2 py-1.5 text-sm dark:border-neutral-700"
               >
                 {ICONS.map((ic) => (
-                  <option key={ic} value={ic}>{ic}</option>
+                  <option key={ic} value={ic}>
+                    {ic}
+                  </option>
                 ))}
               </select>
               <input
@@ -194,7 +225,7 @@ export default function AdminPage() {
                 onChange={(e) => setNewAction({ ...newAction, href: e.target.value })}
                 className="min-w-40 flex-1 rounded-lg border border-neutral-300 bg-transparent px-3 py-1.5 text-sm dark:border-neutral-700"
               />
-              <button className="rounded-lg bg-amber-500 px-4 py-1.5 text-sm font-bold text-neutral-950">
+              <button className="rounded-lg bg-[var(--accent)] px-4 py-1.5 text-sm font-bold text-neutral-950">
                 Salvar
               </button>
             </form>
@@ -206,23 +237,67 @@ export default function AdminPage() {
                 key={action.id}
                 className="group flex items-center gap-3 rounded-xl border border-transparent px-2 py-2 transition hover:border-neutral-200 hover:bg-neutral-50 dark:hover:border-neutral-800 dark:hover:bg-neutral-800/40"
               >
-                <Link
-                  href={action.href}
-                  className="flex flex-1 items-center gap-3 font-medium"
-                >
-                  <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-100 text-lg dark:bg-amber-900/40">
+                <Link href={action.href} className="flex flex-1 items-center gap-3 font-medium">
+                  <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--accent-wash)] text-lg">
                     {action.icon}
                   </span>
                   <span className="text-sm">{action.label}</span>
                 </Link>
                 <div className="flex gap-1 opacity-0 transition group-hover:opacity-100">
-                  <button onClick={() => move(idx, -1)} className="rounded-lg px-2 py-1 text-xs hover:bg-neutral-200 dark:hover:bg-neutral-700">↑</button>
-                  <button onClick={() => move(idx, 1)} className="rounded-lg px-2 py-1 text-xs hover:bg-neutral-200 dark:hover:bg-neutral-700">↓</button>
-                  <button onClick={() => remove(action.id)} className="rounded-lg px-2 py-1 text-xs text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30">✕</button>
+                  <button onClick={() => move(idx, -1)} className="rounded-lg px-2 py-1 text-xs hover:bg-neutral-200 dark:hover:bg-neutral-700">
+                    ↑
+                  </button>
+                  <button onClick={() => move(idx, 1)} className="rounded-lg px-2 py-1 text-xs hover:bg-neutral-200 dark:hover:bg-neutral-700">
+                    ↓
+                  </button>
+                  <button
+                    onClick={() => remove(action.id)}
+                    className="rounded-lg px-2 py-1 text-xs text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30"
+                  >
+                    ✕
+                  </button>
                 </div>
               </div>
             ))}
           </div>
+        </section>
+
+        <section className="rounded-2xl border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-[#0f1a30]">
+          <h2 className="font-display text-lg font-bold">🎨 Tema do portal</h2>
+          <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+            Muda a cor de todo o site. Escolha um fixo ou deixe o calendário
+            mandar — aí o portal troca sozinho (ex: verde no Natal).
+          </p>
+          <div className="mt-4">
+            <button
+              onClick={() => pickTheme("auto")}
+              className={`mr-2 mb-2 rounded-xl border px-4 py-2.5 text-sm font-semibold transition ${
+                themeChoice === "auto"
+                  ? "border-[var(--accent)] bg-[var(--accent-wash)] text-[var(--accent-strong)]"
+                  : "border-neutral-300 hover:border-[var(--accent)] dark:border-neutral-700"
+              }`}
+            >
+              🗓️ Automático (calendário)
+            </button>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {THEMES.map((theme) => (
+              <button
+                key={theme.id}
+                onClick={() => pickTheme(theme.id)}
+                className={`rounded-xl border px-4 py-2.5 text-sm font-semibold transition ${
+                  themeChoice === theme.id
+                    ? "border-[var(--accent)] bg-[var(--accent-wash)] text-[var(--accent-strong)]"
+                    : "border-neutral-300 hover:border-[var(--accent)] dark:border-neutral-700"
+                }`}
+              >
+                {theme.emoji} {theme.name}
+              </button>
+            ))}
+          </div>
+          <p className="mt-3 text-xs text-neutral-400">
+            Tema ativo: {themeById(themeChoice).emoji} {themeById(themeChoice).name}
+          </p>
         </section>
 
         <section className="rounded-2xl border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-[#0f1a30]">
@@ -243,13 +318,13 @@ export default function AdminPage() {
                 URL.revokeObjectURL(url);
                 setBackupMsg("✅ Backup baixado. Guarde o arquivo em local seguro.");
               }}
-              className="rounded-full bg-amber-500 px-4 py-2 text-sm font-bold text-neutral-950 transition hover:bg-amber-400"
+              className="rounded-full bg-[var(--accent)] px-4 py-2 text-sm font-bold text-neutral-950 transition hover:bg-[var(--accent-soft)]"
             >
               ⬇️ Baixar backup
             </button>
             <button
               onClick={() => fileRef.current?.click()}
-              className="rounded-full border border-neutral-300 px-4 py-2 text-sm font-semibold transition hover:border-amber-500 dark:border-neutral-700"
+              className="rounded-full border border-neutral-300 px-4 py-2 text-sm font-semibold transition hover:border-[var(--accent)] dark:border-neutral-700"
             >
               ⬆️ Restaurar backup
             </button>
@@ -275,9 +350,7 @@ export default function AdminPage() {
                 restoreBackup(data);
                 setArticles(listArticles());
                 setActions(listQuickActions());
-                setBackupMsg(
-                  `✅ Backup restaurado: ${data.articles.length} matérias recarregadas.`,
-                );
+                setBackupMsg(`✅ Backup restaurado: ${data.articles.length} matérias recarregadas.`);
               }}
             />
           </div>
@@ -288,7 +361,10 @@ export default function AdminPage() {
           )}
         </section>
 
-        <section id="materias" className="rounded-2xl border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-[#0f1a30]">
+        <section
+          id="materias"
+          className="rounded-2xl border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-[#0f1a30]"
+        >
           <h2 className="font-display text-lg font-bold">📋 Todas as matérias</h2>
           <div className="mt-4">
             {articles.map((a) => (
@@ -296,11 +372,7 @@ export default function AdminPage() {
                 key={a.id}
                 className="group flex flex-wrap items-center gap-3 border-b border-neutral-100 py-3 last:border-0 dark:border-neutral-800/60"
               >
-                <img
-                  src={a.cover}
-                  alt=""
-                  className="h-12 w-20 rounded-lg object-cover"
-                />
+                <img src={a.cover} alt="" className="h-12 w-20 rounded-lg object-cover" />
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-semibold">{a.title}</p>
                   <p className="text-xs text-neutral-400">
@@ -315,7 +387,11 @@ export default function AdminPage() {
                   {a.status !== "publicado" && (
                     <button
                       onClick={() =>
-                        upsertArticle({ ...a, status: "publicado", publishedAt: new Date().toISOString() })
+                        upsertArticle({
+                          ...a,
+                          status: "publicado",
+                          publishedAt: new Date().toISOString(),
+                        })
                       }
                       className="rounded-lg bg-emerald-500/10 px-3 py-1.5 text-xs font-bold text-emerald-600 transition hover:bg-emerald-500/20 dark:text-emerald-400"
                     >
