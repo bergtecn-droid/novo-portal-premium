@@ -68,6 +68,15 @@ export default function AdminPage() {
           </div>
           <div className="flex items-center gap-2">
             <ThemeToggle />
+            <button
+              onClick={async () => {
+                await fetch("/api/admin/logout", { method: "POST" });
+                window.location.href = "/admin/login";
+              }}
+              className="rounded-full border border-neutral-300 px-4 py-2 text-sm font-semibold text-neutral-500 transition hover:border-red-400 hover:text-red-500 dark:border-neutral-700"
+            >
+              Sair
+            </button>
             <Link
               href="/admin/publicar"
               className="rounded-full bg-amber-500 px-4 py-2 text-sm font-bold text-neutral-950 transition hover:bg-amber-400"
