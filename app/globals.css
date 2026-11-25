@@ -44,6 +44,40 @@ body {
   to { opacity: 1; transform: translateY(0); }
 }
 
+.theme-particle {
+  position: absolute;
+  top: -60px;
+  line-height: 1;
+  animation-name: themeFall;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  will-change: transform;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.15));
+}
+
+@keyframes themeFall {
+  0% {
+    transform: translateY(-6vh) translateX(0) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: var(--p-opacity, 0.85);
+  }
+  90% {
+    opacity: var(--p-opacity, 0.85);
+  }
+  100% {
+    transform: translateY(108vh) translateX(var(--p-sway, 40px)) rotate(340deg);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .theme-particle {
+    display: none;
+  }
+}
+
 .theme-banner {
   display: none;
   align-items: center;

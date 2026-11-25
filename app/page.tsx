@@ -5,12 +5,13 @@ import { useEffect, useState } from "react";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { ArticleCard } from "@/components/article-card";
-import { EDITORIAS } from "@/lib/seed";
+import { useSettings } from "@/lib/settings";
 import { publishedArticles } from "@/lib/store";
 import { seedArticles } from "@/lib/seed";
 import type { Article } from "@/lib/types";
 
 export default function HomePage() {
+  const settings = useSettings();
   const [articles, setArticles] = useState<Article[]>(seedArticles);
 
   useEffect(() => {
@@ -81,7 +82,7 @@ export default function HomePage() {
               </section>
             )}
 
-            {EDITORIAS.slice(0, 4).map((editoria) => {
+            {settings.editorias.slice(0, 4).map((editoria) => {
               const list = articles.filter((a) => a.editoria === editoria);
               if (list.length === 0) return null;
               return (

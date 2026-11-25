@@ -1,11 +1,4 @@
-export type Editoria =
-  | "Cidade"
-  | "Política"
-  | "Economia"
-  | "Esportes"
-  | "Entretenimento"
-  | "Tecnologia"
-  | "Saúde";
+export type Editoria = string;
 
 export type MediaKind = "image" | "video";
 

@@ -12,10 +12,15 @@ export async function fileToResizedDataUrl(
   canvas.height = Math.round(bitmap.height * scale);
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("canvas indisponível");
-  ctx.fillStyle = "#ffffff";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  if (file.type !== "image/png" && file.type !== "image/webp") {
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  }
   ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
   bitmap.close?.();
+  if (file.type === "image/png" || file.type === "image/webp") {
+    return canvas.toDataURL("image/png");
+  }
   return canvas.toDataURL("image/jpeg", quality);
 }
 

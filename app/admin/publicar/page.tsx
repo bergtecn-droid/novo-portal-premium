@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { MediaField } from "@/components/media-field";
 import { MediaRenderer } from "@/components/media-render";
-import { EDITORIAS } from "@/lib/seed";
+import { useSettings } from "@/lib/settings";
 import { getArticle, slugify, upsertArticle } from "@/lib/store";
 import type { Article, Block, Editoria, MediaItem, Status } from "@/lib/types";
 
@@ -51,6 +51,7 @@ function PublishForm() {
   const editSlug = search.get("slug");
 
   const [article, setArticle] = useState<Article>(blankArticle());
+  const settings = useSettings();
   const [tagsText, setTagsText] = useState("");
   const [preview, setPreview] = useState(true);
 
@@ -159,7 +160,7 @@ function PublishForm() {
       <header className="sticky top-0 z-30 border-b border-neutral-200 bg-white/90 backdrop-blur dark:border-neutral-800 dark:bg-[#0f1a30]/90">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
           <Link href="/admin" className="font-display text-lg font-bold">
-            ← Nova <span className="text-[var(--accent-strong)]">• Painel</span>
+            ← {settings.portalName} <span className="text-[var(--accent-strong)]">• Painel</span>
           </Link>
           <div className="flex items-center gap-2">
             <button
@@ -216,7 +217,7 @@ function PublishForm() {
                   onChange={(e) => set("editoria", e.target.value as Editoria)}
                   className={inputCls}
                 >
-                  {EDITORIAS.map((e) => (
+                  {settings.editorias.map((e) => (
                     <option key={e} value={e}>
                       {e}
                     </option>

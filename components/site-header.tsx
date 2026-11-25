@@ -2,13 +2,15 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { EDITORIAS } from "@/lib/seed";
 import { publishedArticles } from "@/lib/store";
+import { useSettings } from "@/lib/settings";
 import { ThemeToggle } from "./theme-toggle";
 
 export function SiteHeader() {
   const [headlines, setHeadlines] = useState<string[]>([]);
   const [open, setOpen] = useState(false);
+  const settings = useSettings();
+  const editorias = settings.editorias;
 
   useEffect(() => {
     const load = () =>
@@ -50,17 +52,27 @@ export function SiteHeader() {
       <div className="theme-banner" aria-hidden />
 
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
-        <Link href="/" className="flex items-baseline gap-1.5">
-          <span className="font-display text-3xl font-bold tracking-tight text-neutral-900 dark:text-white">
-            Nova
-          </span>
-          <span className="rounded bg-[var(--accent)] px-1.5 py-0.5 text-[11px] font-bold uppercase tracking-widest text-neutral-950">
-            Portal
-          </span>
+        <Link href="/" className="flex items-center gap-2.5">
+          {settings.logoUrl ? (
+            <img
+              src={settings.logoUrl}
+              alt={settings.portalName}
+              className="h-9 w-auto max-w-[190px] object-contain"
+            />
+          ) : (
+            <>
+              <span className="font-display text-3xl font-bold tracking-tight text-neutral-900 dark:text-white">
+                {settings.portalName}
+              </span>
+              <span className="rounded bg-[var(--accent)] px-1.5 py-0.5 text-[11px] font-bold uppercase tracking-widest text-neutral-950">
+                Portal
+              </span>
+            </>
+          )}
         </Link>
 
         <nav className="hidden items-center gap-1 md:flex">
-          {EDITORIAS.map((e) => (
+          {editorias.map((e) => (
             <Link
               key={e}
               href={`/editoria/${encodeURIComponent(e.toLowerCase())}`}
@@ -91,7 +103,7 @@ export function SiteHeader() {
 
       {open && (
         <nav className="grid grid-cols-2 gap-1 border-t border-neutral-200 px-4 py-3 md:hidden dark:border-neutral-800">
-          {EDITORIAS.map((e) => (
+          {editorias.map((e) => (
             <Link
               key={e}
               href={`/editoria/${encodeURIComponent(e.toLowerCase())}`}

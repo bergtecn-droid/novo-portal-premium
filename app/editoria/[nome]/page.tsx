@@ -7,10 +7,11 @@ import { SiteFooter } from "@/components/site-footer";
 import { ArticleCard } from "@/components/article-card";
 import { publishedArticles } from "@/lib/store";
 import type { Article } from "@/lib/types";
-import { EDITORIAS } from "@/lib/seed";
+import { useSettings } from "@/lib/settings";
 
 export default function EditoriaPage() {
   const params = useParams<{ nome: string }>();
+  const settings = useSettings();
   const [articles, setArticles] = useState<Article[]>([]);
 
   useEffect(() => {
@@ -22,7 +23,7 @@ export default function EditoriaPage() {
 
   const nome = decodeURIComponent(params.nome || "");
   const titulo =
-    EDITORIAS.find((e) => e.toLowerCase() === nome.toLowerCase()) ?? nome;
+    settings.editorias.find((e) => e.toLowerCase() === nome.toLowerCase()) ?? nome;
   const list = articles.filter(
     (a) => a.editoria.toLowerCase() === nome.toLowerCase(),
   );

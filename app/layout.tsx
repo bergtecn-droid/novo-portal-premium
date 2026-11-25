@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { RadioPlayer } from "@/components/radio-player";
+import { ThemeParticles } from "@/components/theme-particles";
 import "./globals.css";
 
 const siteUrl =
@@ -63,6 +64,7 @@ export default function RootLayout({
       <body className="bg-[var(--bg-page,theme(colors.neutral.50))] pb-28 text-neutral-900 antialiased dark:text-neutral-100">
         {children}
         <RadioPlayer />
+        <ThemeParticles />
       </body>
     </html>
   );

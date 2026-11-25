@@ -3,6 +3,9 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { fileToResizedDataUrl } from "@/lib/image";
+import { loadSettings, saveSettings, useSettings } from "@/lib/settings";
+import type { PortalSettings } from "@/lib/settings";
 import {
   formatDate,
   listArticles,
@@ -47,6 +50,18 @@ export default function AdminPage() {
   const [backupMsg, setBackupMsg] = useState("");
   const [themeChoice, setThemeChoice] = useState("auto");
   const fileRef = useRef<HTMLInputElement>(null);
+  const settings = useSettings();
+  const [settingsDraft, setSettingsDraft] = useState<PortalSettings | null>(null);
+  const [settingsMsg, setSettingsMsg] = useState("");
+  const [logoBusy, setLogoBusy] = useState(false);
+  const logoRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const load = () => setSettingsDraft(loadSettings());
+    load();
+    window.addEventListener("portal-nova.settings", load);
+    return () => window.removeEventListener("portal-nova.settings", load);
+  }, []);
 
   useEffect(() => {
     const load = () => {
@@ -90,7 +105,7 @@ export default function AdminPage() {
       <header className="border-b border-neutral-200 bg-white dark:border-neutral-800 dark:bg-[#0f1a30]">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
           <Link href="/" className="font-display text-xl font-bold">
-            Nova <span className="text-[var(--accent-strong)]">• Admin</span>
+            {settings.portalName} <span className="text-[var(--accent-strong)]">• Admin</span>
           </Link>
           <div className="flex items-center gap-2">
             <ThemeToggle />
@@ -298,6 +313,185 @@ export default function AdminPage() {
           <p className="mt-3 text-xs text-neutral-400">
             Tema ativo: {themeById(themeChoice).emoji} {themeById(themeChoice).name}
           </p>
+        </section>
+
+        <section className="rounded-2xl border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-[#0f1a30]">
+          <h2 className="font-display text-lg font-bold">⚙️ Configurações do portal</h2>
+          <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+            Personalize o nome, a logomarca e as editorias do portal.
+          </p>
+
+          {settingsDraft && (
+            <div className="mt-4 space-y-5">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <label className="text-sm block">
+                  <span className="font-semibold">Nome do portal</span>
+                  <input
+                    value={settingsDraft.portalName}
+                    onChange={(e) =>
+                      setSettingsDraft({ ...settingsDraft, portalName: e.target.value })
+                    }
+                    placeholder="Ex: Nova, Metrópole, Cidade em Foco"
+                    className="mt-1 w-full rounded-lg border border-neutral-300 bg-transparent px-3 py-2 dark:border-neutral-700"
+                  />
+                </label>
+                <div className="text-sm">
+                  <span className="font-semibold">Logomarca</span>
+                  <input
+                    ref={logoRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      e.target.value = "";
+                      if (!file) return;
+                      setLogoBusy(true);
+                      try {
+                        const dataUrl = await fileToResizedDataUrl(file, 512, 0.92);
+                        setSettingsDraft({ ...settingsDraft, logoUrl: dataUrl });
+                        setSettingsMsg("");
+                      } catch {
+                        setSettingsMsg("❌ Não foi possível carregar a logomarca.");
+                      } finally {
+                        setLogoBusy(false);
+                      }
+                    }}
+                  />
+                  <div className="mt-1 flex flex-wrap items-center gap-2">
+                    {settingsDraft.logoUrl && (
+                      <img
+                        src={settingsDraft.logoUrl}
+                        alt=""
+                        className="h-10 rounded-lg border border-neutral-200 bg-white object-contain p-1 dark:border-neutral-700"
+                      />
+                    )}
+                    <button
+                      onClick={() => logoRef.current?.click()}
+                      className="rounded-full border border-neutral-300 px-3 py-1.5 text-xs font-semibold transition hover:border-[var(--accent)] dark:border-neutral-700"
+                    >
+                      {logoBusy ? "Carregando…" : settingsDraft.logoUrl ? "🖼️ Trocar logomarca" : "📤 Enviar logomarca"}
+                    </button>
+                    {settingsDraft.logoUrl && (
+                      <button
+                        onClick={() => setSettingsDraft({ ...settingsDraft, logoUrl: undefined })}
+                        className="rounded-full px-2 py-1 text-xs text-red-500 hover:underline"
+                      >
+                        remover
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-semibold">Editorias (menu do portal)</span>
+                  <button
+                    onClick={() =>
+                      setSettingsDraft({
+                        ...settingsDraft,
+                        editorias: [...settingsDraft.editorias, ""],
+                      })
+                    }
+                    className="rounded-full border border-neutral-300 px-3 py-1 text-xs font-semibold transition hover:border-[var(--accent)] dark:border-neutral-700"
+                  >
+                    + Adicionar editoria
+                  </button>
+                </div>
+                <div className="mt-2 space-y-2">
+                  {settingsDraft.editorias.map((editoria, i) => (
+                    <div key={i} className="flex items-center gap-2">
+                      <input
+                        value={editoria}
+                        onChange={(e) => {
+                          const next = [...settingsDraft.editorias];
+                          next[i] = e.target.value;
+                          setSettingsDraft({ ...settingsDraft, editorias: next });
+                        }}
+                        placeholder={`Editoria ${i + 1}`}
+                        className="flex-1 rounded-lg border border-neutral-300 bg-transparent px-3 py-2 text-sm dark:border-neutral-700"
+                      />
+                      <button
+                        onClick={() => {
+                          if (i === 0) return;
+                          const next = [...settingsDraft.editorias];
+                          [next[i - 1], next[i]] = [next[i], next[i - 1]];
+                          setSettingsDraft({ ...settingsDraft, editorias: next });
+                        }}
+                        className="rounded-lg px-2 py-1 text-xs hover:bg-neutral-200 dark:hover:bg-neutral-700"
+                      >
+                        ↑
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (i >= settingsDraft.editorias.length - 1) return;
+                          const next = [...settingsDraft.editorias];
+                          [next[i + 1], next[i]] = [next[i], next[i + 1]];
+                          setSettingsDraft({ ...settingsDraft, editorias: next });
+                        }}
+                        className="rounded-lg px-2 py-1 text-xs hover:bg-neutral-200 dark:hover:bg-neutral-700"
+                      >
+                        ↓
+                      </button>
+                      <button
+                        onClick={() =>
+                          setSettingsDraft({
+                            ...settingsDraft,
+                            editorias: settingsDraft.editorias.filter((_, k) => k !== i),
+                          })
+                        }
+                        className="rounded-lg px-2 py-1 text-xs text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                  {settingsDraft.editorias.length === 0 && (
+                    <p className="text-xs text-neutral-400">
+                      O portal precisa de pelo menos uma editoria.
+                    </p>
+                  )}
+                </div>
+                <p className="mt-2 text-xs text-neutral-400">
+                  Dica: ao renomear uma editoria, as matérias publicadas nela
+                  acompanham o novo nome automaticamente.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-3">
+                <button
+                  onClick={() => {
+                    const current = loadSettings();
+                    saveSettings({
+                      portalName: settingsDraft.portalName,
+                      logoUrl: settingsDraft.logoUrl,
+                      editorias: settingsDraft.editorias,
+                    });
+                    current.editorias.forEach((oldName, i) => {
+                      const newName = settingsDraft.editorias[i];
+                      if (newName && newName.trim() !== oldName) {
+                        listArticles().forEach((a) => {
+                          if (a.editoria === oldName) {
+                            upsertArticle({ ...a, editoria: newName.trim() });
+                          }
+                        });
+                      }
+                    });
+                    setSettingsDraft(loadSettings());
+                    setArticles(listArticles());
+                    setSettingsMsg("✅ Configurações salvas! O portal já está atualizado.");
+                  }}
+                  className="rounded-full bg-[var(--accent)] px-5 py-2 text-sm font-bold text-neutral-950 transition hover:bg-[var(--accent-soft)]"
+                >
+                  💾 Salvar configurações
+                </button>
+                {settingsMsg && (
+                  <span className="text-sm text-neutral-500 dark:text-neutral-400">{settingsMsg}</span>
+                )}
+              </div>
+            </div>
+          )}
         </section>
 
         <section className="rounded-2xl border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-[#0f1a30]">

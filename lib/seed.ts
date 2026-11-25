@@ -1,17 +1,10 @@
+import { DEFAULT_EDITORIAS } from "./settings";
 import type { Article } from "./types";
 
 const img = (seed: string, w = 1200, h = 700) =>
   `https://picsum.photos/seed/${seed}/${w}/${h}`;
 
-export const EDITORIAS = [
-  "Cidade",
-  "Política",
-  "Economia",
-  "Esportes",
-  "Entretenimento",
-  "Tecnologia",
-  "Saúde",
-] as const;
+export const EDITORIAS: string[] = DEFAULT_EDITORIAS;
 
 export const seedArticles: Article[] = [
   {

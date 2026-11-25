@@ -19,6 +19,8 @@ export function ArticleView({ slug }: { slug: string }) {
   const router = useRouter();
   const [article, setArticle] = useState<Article | null>(null);
   const [copied, setCopied] = useState(false);
+  const url =
+    typeof window === "undefined" ? "" : window.location.href;
 
   useEffect(() => {
     const load = () => {
@@ -46,7 +48,6 @@ export function ArticleView({ slug }: { slug: string }) {
 
   const share = async () => {
     if (!article) return;
-    const url = window.location.href;
     if (navigator.share) {
       try {
         await navigator.share({ title: article.title, url });
@@ -126,7 +127,9 @@ export function ArticleView({ slug }: { slug: string }) {
                   {copied ? "Link copiado ✓" : "↗ Compartilhar"}
                 </button>
                 <a
-                  href={`https://api.whatsapp.com/send?text=${encodeURIComponent(article.title)}`}
+                  href={`https://api.whatsapp.com/send?text=${encodeURIComponent(
+                    `${article.title}\n\n${url}`,
+                  )}`}
                   target="_blank"
                   rel="noreferrer"
                   className="rounded-full border border-neutral-300 px-3 py-1 text-xs font-semibold transition hover:border-[var(--accent)] dark:border-neutral-700"
