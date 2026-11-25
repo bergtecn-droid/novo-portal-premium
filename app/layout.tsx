@@ -60,7 +60,7 @@ export default function RootLayout({
         />
         <script dangerouslySetInnerHTML={{ __html: themeInit }} />
       </head>
-      <body className="bg-neutral-50 pb-28 text-neutral-900 antialiased dark:bg-[#0b1120] dark:text-neutral-100">
+      <body className="bg-[var(--bg-page,theme(colors.neutral.50))] pb-28 text-neutral-900 antialiased dark:text-neutral-100">
         {children}
         <RadioPlayer />
       </body>

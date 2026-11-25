@@ -3,9 +3,10 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useState } from "react";
+import { MediaField } from "@/components/media-field";
 import { MediaRenderer } from "@/components/media-render";
 import { EDITORIAS } from "@/lib/seed";
-import { getArticle, listArticles, slugify, upsertArticle } from "@/lib/store";
+import { getArticle, slugify, upsertArticle } from "@/lib/store";
 import type { Article, Block, Editoria, MediaItem, Status } from "@/lib/types";
 
 const blankArticle = (): Article => ({
@@ -23,6 +24,27 @@ const blankArticle = (): Article => ({
   status: "rascunho",
   views: 0,
 });
+
+const card =
+  "rounded-2xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-[#0f1a30]";
+
+function SectionHeader({ n, title, hint }: { n: string; title: string; hint?: string }) {
+  return (
+    <div className="mb-4 flex items-center gap-3">
+      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--accent)] text-sm font-bold text-neutral-950">
+        {n}
+      </span>
+      <div>
+        <h2 className="font-display text-lg font-bold leading-none">{title}</h2>
+        {hint && <p className="mt-1 text-xs text-neutral-400">{hint}</p>}
+      </div>
+    </div>
+  );
+}
+
+const labelCls = "text-sm font-semibold";
+const inputCls =
+  "mt-1 w-full rounded-lg border border-neutral-300 bg-transparent px-3 py-2 dark:border-neutral-700";
 
 function PublishForm() {
   const search = useSearchParams();
@@ -58,37 +80,15 @@ function PublishForm() {
             ? {
                 type: "image",
                 size: "grande",
-                media: {
-                  src: `https://picsum.photos/seed/${Date.now()}/1200/720`,
-                  captionTop: "Crédito da foto",
-                  captionBottom: "Legenda da foto",
-                },
+                media: { captionTop: "Crédito da foto", captionBottom: "Legenda da foto" },
               }
             : type === "video"
               ? {
                   type: "video",
-                  media: {
-                    youtubeId: "",
-                    captionTop: "Crédito do vídeo",
-                    captionBottom: "Legenda do vídeo",
-                  },
+                  media: { captionTop: "Crédito do vídeo", captionBottom: "Legenda do vídeo" },
                 }
               : type === "gallery"
-                ? {
-                    type: "gallery",
-                    items: [
-                      {
-                        src: `https://picsum.photos/seed/${Date.now()}a/900/640`,
-                        captionTop: "Legenda de cima",
-                        captionBottom: "Legenda de baixo",
-                      },
-                      {
-                        src: `https://picsum.photos/seed/${Date.now()}b/900/640`,
-                        captionTop: "Legenda de cima",
-                        captionBottom: "Legenda de baixo",
-                      },
-                    ],
-                  }
+                ? { type: "gallery", items: [{}, {}] }
                 : { type: "text", content: "Digite o parágrafo aqui…" };
     set("blocks", article.blocks.concat(block));
   };
@@ -98,6 +98,13 @@ function PublishForm() {
     if (block.type === "image" || block.type === "video") {
       setBlock(idx, { ...block, media: { ...block.media, ...patch } });
     }
+  };
+
+  const updateGalleryItem = (idx: number, j: number, patch: Partial<MediaItem>) => {
+    const block = article.blocks[idx];
+    if (block.type !== "gallery") return;
+    const items = block.items.map((it, k) => (k === j ? { ...it, ...patch } : it));
+    setBlock(idx, { ...block, items });
   };
 
   const save = (status: Status) => {
@@ -126,9 +133,30 @@ function PublishForm() {
     [article.blocks],
   );
 
+  const coverMedia: MediaItem = {
+    src: article.cover || undefined,
+    captionBottom: article.coverCaption,
+  };
+  const patchCover = (patch: Partial<MediaItem>) => {
+    if (patch.src !== undefined) set("cover", patch.src);
+    if (patch.captionBottom !== undefined) set("coverCaption", patch.captionBottom);
+  };
+
+  const blockBadge = (type: Block["type"], i: number) => {
+    const map: Record<Block["type"], string> = {
+      text: "📄 Parágrafo",
+      heading: "🔠 Subtítulo",
+      quote: "❝ Citação",
+      image: "🖼️ Foto",
+      video: "🎬 Vídeo",
+      gallery: "🖼️ Galeria",
+    };
+    return `${i + 1}. ${map[type]}`;
+  };
+
   return (
     <div className="min-h-screen">
-      <header className="border-b border-neutral-200 bg-white dark:border-neutral-800 dark:bg-[#0f1a30]">
+      <header className="sticky top-0 z-30 border-b border-neutral-200 bg-white/90 backdrop-blur dark:border-neutral-800 dark:bg-[#0f1a30]/90">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
           <Link href="/admin" className="font-display text-lg font-bold">
             ← Nova <span className="text-[var(--accent-strong)]">• Painel</span>
@@ -161,8 +189,13 @@ function PublishForm() {
       </header>
 
       <main className="mx-auto grid max-w-7xl gap-6 px-4 py-8 xl:grid-cols-2">
-        <section className="space-y-4">
-          <div className="rounded-2xl border border-neutral-200 bg-white p-5 dark:border-neutral-800 dark:bg-[#0f1a30]">
+        <section className="space-y-5">
+          <div className={`${card} p-5`}>
+            <SectionHeader
+              n="1"
+              title="Dados da matéria"
+              hint="Título, subtítulo, editoria, autor e tags"
+            />
             <input
               value={article.title}
               onChange={(e) => set("title", e.target.value)}
@@ -175,59 +208,57 @@ function PublishForm() {
               placeholder="Subtítulo (linha fina que aparece abaixo do título)"
               className="mt-3 w-full bg-transparent text-lg text-neutral-500 outline-none dark:text-neutral-400"
             />
-          </div>
-
-          <div className="grid gap-3 rounded-2xl border border-neutral-200 bg-white p-5 sm:grid-cols-2 dark:border-neutral-800 dark:bg-[#0f1a30]">
-            <label className="text-sm">
-              <span className="font-semibold">Editoria</span>
-              <select
-                value={article.editoria}
-                onChange={(e) => set("editoria", e.target.value as Editoria)}
-                className="mt-1 w-full rounded-lg border border-neutral-300 bg-transparent px-3 py-2 dark:border-neutral-700"
-              >
-                {EDITORIAS.map((e) => (
-                  <option key={e} value={e}>
-                    {e}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="text-sm">
-              <span className="font-semibold">Autor</span>
-              <input
-                value={article.author}
-                onChange={(e) => set("author", e.target.value)}
-                placeholder="Nome do autor"
-                className="mt-1 w-full rounded-lg border border-neutral-300 bg-transparent px-3 py-2 dark:border-neutral-700"
-              />
-            </label>
-            <label className="text-sm sm:col-span-2">
-              <span className="font-semibold">Tags (separadas por vírgula)</span>
-              <input
-                value={tagsText}
-                onChange={(e) => setTagsText(e.target.value)}
-                placeholder="Cidade, Obras, Transporte"
-                className="mt-1 w-full rounded-lg border border-neutral-300 bg-transparent px-3 py-2 dark:border-neutral-700"
-              />
-            </label>
-            <div className="sm:col-span-2">
-              <span className="text-sm font-semibold">Imagem de capa</span>
-              <input
-                value={article.cover}
-                onChange={(e) => set("cover", e.target.value)}
-                placeholder="URL da imagem (https://…)"
-                className="mt-1 w-full rounded-lg border border-neutral-300 bg-transparent px-3 py-2 text-sm dark:border-neutral-700"
-              />
-              <input
-                value={article.coverCaption}
-                onChange={(e) => set("coverCaption", e.target.value)}
-                placeholder="Legenda da capa (aparece abaixo)"
-                className="mt-2 w-full rounded-lg border border-neutral-300 bg-transparent px-3 py-2 text-sm dark:border-neutral-700"
-              />
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              <label className="text-sm">
+                <span className={labelCls}>Editoria</span>
+                <select
+                  value={article.editoria}
+                  onChange={(e) => set("editoria", e.target.value as Editoria)}
+                  className={inputCls}
+                >
+                  {EDITORIAS.map((e) => (
+                    <option key={e} value={e}>
+                      {e}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="text-sm">
+                <span className={labelCls}>Autor</span>
+                <input
+                  value={article.author}
+                  onChange={(e) => set("author", e.target.value)}
+                  placeholder="Nome do autor"
+                  className={inputCls}
+                />
+              </label>
+              <label className="text-sm sm:col-span-2">
+                <span className={labelCls}>Tags (separadas por vírgula)</span>
+                <input
+                  value={tagsText}
+                  onChange={(e) => setTagsText(e.target.value)}
+                  placeholder="Cidade, Obras, Transporte"
+                  className={inputCls}
+                />
+              </label>
             </div>
           </div>
 
-          <div className="rounded-2xl border border-neutral-200 bg-white p-5 dark:border-neutral-800 dark:bg-[#0f1a30]">
+          <div className={`${card} p-5`}>
+            <SectionHeader
+              n="2"
+              title="Imagem de capa"
+              hint="Clique em 'Do computador' para escolher a foto, ou cole um link"
+            />
+            <MediaField kind="image" media={coverMedia} onPatch={patchCover} singleCaption />
+          </div>
+
+          <div className={`${card} p-5`}>
+            <SectionHeader
+              n="3"
+              title="Conteúdo da matéria"
+              hint="Escreva o texto e insira fotos, vídeos e galerias onde quiser"
+            />
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-sm font-semibold">Inserir no texto:</span>
               {[
@@ -246,36 +277,18 @@ function PublishForm() {
                   {icon} {label}
                 </button>
               ))}
-              <span className="ml-auto text-xs text-neutral-400">
-                {wordCount} palavras
-              </span>
+              <span className="ml-auto text-xs text-neutral-400">{wordCount} palavras</span>
             </div>
 
-            <div className="mt-4 space-y-3">
+            <div className="mt-4 space-y-4">
               {article.blocks.map((block, idx) => (
                 <div
                   key={idx}
-                  className="rounded-xl border border-neutral-200 p-3 dark:border-neutral-700"
+                  className="rounded-xl border border-neutral-200 bg-neutral-50/60 p-3 dark:border-neutral-700 dark:bg-neutral-800/40"
                 >
-                  <div className="mb-2 flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-neutral-400">
-                    {block.type === "text" && "📄 Parágrafo"}
-                    {block.type === "heading" && "🔠 Subtítulo"}
-                    {block.type === "quote" && "❝ Citação"}
-                    {block.type === "image" && "🖼️ Foto"}
-                    {block.type === "video" && "🎬 Vídeo"}
-                    {block.type === "gallery" && "🗂️ Galeria"}
+                  <div className="mb-2 flex flex-wrap items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-neutral-400">
+                    {blockBadge(block.type, idx)}
                     <span className="ml-auto flex gap-1">
-                      <button
-                        onClick={() =>
-                          set(
-                            "blocks",
-                            article.blocks.filter((_, i) => i !== idx),
-                          )
-                        }
-                        className="text-red-500 hover:underline"
-                      >
-                        remover
-                      </button>
                       {idx > 0 && (
                         <button
                           onClick={() => {
@@ -283,8 +296,9 @@ function PublishForm() {
                             [next[idx - 1], next[idx]] = [next[idx], next[idx - 1]];
                             set("blocks", next);
                           }}
+                          className="rounded bg-white px-2 py-0.5 shadow-sm hover:bg-neutral-100 dark:bg-neutral-700"
                         >
-                          ↑
+                          ↑ subir
                         </button>
                       )}
                       {idx < article.blocks.length - 1 && (
@@ -294,10 +308,22 @@ function PublishForm() {
                             [next[idx], next[idx + 1]] = [next[idx + 1], next[idx]];
                             set("blocks", next);
                           }}
+                          className="rounded bg-white px-2 py-0.5 shadow-sm hover:bg-neutral-100 dark:bg-neutral-700"
                         >
-                          ↓
+                          ↓ descer
                         </button>
                       )}
+                      <button
+                        onClick={() =>
+                          set(
+                            "blocks",
+                            article.blocks.filter((_, i) => i !== idx),
+                          )
+                        }
+                        className="rounded bg-white px-2 py-0.5 text-red-500 shadow-sm hover:bg-neutral-100 dark:bg-neutral-700"
+                      >
+                        ✕ remover
+                      </button>
                     </span>
                   </div>
 
@@ -324,114 +350,69 @@ function PublishForm() {
                       className="w-full resize-y rounded-lg border border-neutral-200 bg-transparent p-3 text-sm italic dark:border-neutral-700"
                     />
                   )}
-                  {(block.type === "image" || block.type === "video") && (
-                    <div className="space-y-2">
-                      <input
-                        value={block.media.youtubeId ?? block.media.src}
-                        onChange={(e) =>
-                          updateMedia(
-                            idx,
-                            block.type === "video"
-                              ? { youtubeId: e.target.value }
-                              : { src: e.target.value },
-                          )
-                        }
-                        placeholder={
-                          block.type === "video"
-                            ? "Link do YouTube (ID do vídeo) ou caminho do MP4"
-                            : "URL da imagem"
-                        }
-                        className="w-full rounded-lg border border-neutral-200 bg-transparent p-2 text-sm dark:border-neutral-700"
-                      />
-                      <input
-                        value={block.media.captionTop ?? ""}
-                        onChange={(e) => updateMedia(idx, { captionTop: e.target.value })}
-                        placeholder="Legenda de CIMA (ex: crédito da foto)"
-                        className="w-full rounded-lg border border-neutral-200 bg-transparent p-2 text-sm dark:border-neutral-700"
-                      />
-                      <input
-                        value={block.media.captionBottom ?? ""}
-                        onChange={(e) => updateMedia(idx, { captionBottom: e.target.value })}
-                        placeholder="Legenda de BAIXO (ex: descrição da cena)"
-                        className="w-full rounded-lg border border-neutral-200 bg-transparent p-2 text-sm dark:border-neutral-700"
-                      />
-                    </div>
+                  {block.type === "image" && (
+                    <MediaField
+                      kind="image"
+                      media={block.media}
+                      onPatch={(patch) => updateMedia(idx, patch)}
+                    />
+                  )}
+                  {block.type === "video" && (
+                    <MediaField
+                      kind="video"
+                      media={block.media}
+                      onPatch={(patch) => updateMedia(idx, patch)}
+                    />
                   )}
                   {block.type === "gallery" && (
                     <div className="space-y-3">
                       {block.items.map((item, j) => (
                         <div
                           key={j}
-                          className="rounded-lg bg-neutral-50 p-2 dark:bg-neutral-800/50"
+                          className="rounded-lg border border-neutral-200 bg-white p-3 dark:border-neutral-700 dark:bg-[#0f1a30]"
                         >
-                          <div className="flex items-center justify-between text-[11px] font-semibold text-neutral-400">
+                          <div className="mb-2 flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-neutral-400">
                             Foto {j + 1}
-                            <button
-                              onClick={() => {
-                                const next = [...article.blocks];
-                                const g = next[idx] as Extract<Block, { type: "gallery" }>;
-                                g.items = g.items.filter((_, k) => k !== j);
-                                setBlock(idx, { ...g });
-                              }}
-                              className="text-red-500 hover:underline"
-                            >
-                              remover
-                            </button>
                           </div>
-                          <input
-                            value={item.src}
-                            onChange={(e) => {
-                              const next = [...article.blocks];
-                              const g = next[idx] as Extract<Block, { type: "gallery" }>;
-                              g.items[j] = { ...g.items[j], src: e.target.value };
-                              setBlock(idx, { ...g });
-                            }}
-                            placeholder="URL da imagem"
-                            className="mt-1 w-full rounded border border-neutral-200 bg-transparent p-1.5 text-xs dark:border-neutral-700"
-                          />
-                          <input
-                            value={item.captionTop ?? ""}
-                            onChange={(e) => {
-                              const next = [...article.blocks];
-                              const g = next[idx] as Extract<Block, { type: "gallery" }>;
-                              g.items[j] = { ...g.items[j], captionTop: e.target.value };
-                              setBlock(idx, { ...g });
-                            }}
-                            placeholder="Legenda de cima"
-                            className="mt-1 w-full rounded border border-neutral-200 bg-transparent p-1.5 text-xs dark:border-neutral-700"
-                          />
-                          <input
-                            value={item.captionBottom ?? ""}
-                            onChange={(e) => {
-                              const next = [...article.blocks];
-                              const g = next[idx] as Extract<Block, { type: "gallery" }>;
-                              g.items[j] = { ...g.items[j], captionBottom: e.target.value };
-                              setBlock(idx, { ...g });
-                            }}
-                            placeholder="Legenda de baixo"
-                            className="mt-1 w-full rounded border border-neutral-200 bg-transparent p-1.5 text-xs dark:border-neutral-700"
+                          <MediaField
+                            kind="image"
+                            media={item}
+                            onPatch={(patch) => updateGalleryItem(idx, j, patch)}
+                            singleCaption
                           />
                         </div>
                       ))}
-                      <button
-                        onClick={() => {
-                          const next = [...article.blocks];
-                          const g = next[idx] as Extract<Block, { type: "gallery" }>;
-                          g.items.push({
-                            src: `https://picsum.photos/seed/${Date.now()}/900/640`,
-                            captionTop: "",
-                            captionBottom: "",
-                          });
-                          setBlock(idx, { ...g });
-                        }}
-                        className="w-full rounded-lg border border-dashed border-neutral-300 py-2 text-xs font-semibold text-neutral-500 hover:border-[var(--accent)] dark:border-neutral-600"
-                      >
-                        + Adicionar foto à galeria
-                      </button>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => {
+                            const g = article.blocks[idx] as Extract<Block, { type: "gallery" }>;
+                            setBlock(idx, { ...g, items: [...g.items, {}] });
+                          }}
+                          className="flex-1 rounded-lg border border-dashed border-neutral-300 py-2 text-xs font-semibold text-neutral-500 hover:border-[var(--accent)] dark:border-neutral-600"
+                        >
+                          + Adicionar foto à galeria
+                        </button>
+                        {block.items.length > 1 && (
+                          <button
+                            onClick={() => {
+                              const g = article.blocks[idx] as Extract<Block, { type: "gallery" }>;
+                              setBlock(idx, { ...g, items: g.items.slice(0, -1) });
+                            }}
+                            className="rounded-lg border border-dashed border-neutral-300 px-3 py-2 text-xs font-semibold text-red-500 hover:border-red-400 dark:border-neutral-600"
+                          >
+                            − Remover última
+                          </button>
+                        )}
+                      </div>
                     </div>
                   )}
                 </div>
               ))}
+              {article.blocks.length === 0 && (
+                <p className="rounded-xl border border-dashed border-neutral-300 p-6 text-center text-sm text-neutral-400 dark:border-neutral-700">
+                  A matéria está sem conteúdo. Use os botões acima para inserir o primeiro bloco.
+                </p>
+              )}
             </div>
           </div>
         </section>
@@ -451,13 +432,7 @@ function PublishForm() {
               <p className="mt-2 text-lg text-neutral-500 dark:text-neutral-400">
                 {article.subtitle || "Subtítulo da matéria…"}
               </p>
-              {article.cover && (
-                <img
-                  src={article.cover}
-                  alt=""
-                  className="mt-4 w-full rounded-xl"
-                />
-              )}
+              {article.cover && <img src={article.cover} alt="" className="mt-4 w-full rounded-xl" />}
               <div className="mt-6">
                 <MediaRenderer blocks={article.blocks} />
               </div>

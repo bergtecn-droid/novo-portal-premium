@@ -47,6 +47,8 @@ export function SiteHeader() {
         </div>
       </div>
 
+      <div className="theme-banner" aria-hidden />
+
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
         <Link href="/" className="flex items-baseline gap-1.5">
           <span className="font-display text-3xl font-bold tracking-tight text-neutral-900 dark:text-white">
