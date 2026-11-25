@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { MediaField } from "@/components/media-field";
 import { MediaRenderer } from "@/components/media-render";
 import { useSettings } from "@/lib/settings";
@@ -45,6 +45,89 @@ function SectionHeader({ n, title, hint }: { n: string; title: string; hint?: st
 const labelCls = "text-sm font-semibold";
 const inputCls =
   "mt-1 w-full rounded-lg border border-neutral-300 bg-transparent px-3 py-2 dark:border-neutral-700";
+
+const toolBtn =
+  "rounded-lg bg-neutral-100 px-2.5 py-1.5 text-xs font-bold transition hover:bg-[var(--accent-wash)] dark:bg-neutral-800 dark:hover:bg-[var(--accent-wash)]";
+
+function TextBlockEditor({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  const ref = useRef<HTMLTextAreaElement>(null);
+
+  const apply = (transform: (sel: string) => string, fallback = "texto") => {
+    const ta = ref.current;
+    if (!ta) return;
+    const start = ta.selectionStart;
+    const end = ta.selectionEnd;
+    const sel = value.slice(start, end) || fallback;
+    const wrapped = transform(sel);
+    onChange(value.slice(0, start) + wrapped + value.slice(end));
+  };
+
+  const asList = (sel: string) =>
+    sel
+      .split("\n")
+      .map((l) => (l.trim() ? `- ${l.trim()}` : l))
+      .join("\n");
+
+  const asLink = () => {
+    const ta = ref.current;
+    if (!ta) return;
+    const start = ta.selectionStart;
+    const end = ta.selectionEnd;
+    const sel = value.slice(start, end) || "texto do link";
+    const url = window.prompt("Endereço do link (https://…):", "https://");
+    if (!url) return;
+    const wrapped = `[${sel}](${url})`;
+    onChange(value.slice(0, start) + wrapped + value.slice(end));
+  };
+
+  return (
+    <div className="space-y-2">
+      <div className="flex flex-wrap items-center gap-1.5">
+        <button type="button" className={toolBtn} onMouseDown={(e) => e.preventDefault()} onClick={() => apply((sel) => `**${sel}**`)} title="Negrito">
+          <b>B</b> Negrito
+        </button>
+        <button type="button" className={toolBtn} onMouseDown={(e) => e.preventDefault()} onClick={() => apply((sel) => `*${sel}*`)} title="Itálico">
+          <i>I</i> Itálico
+        </button>
+        <button type="button" className={toolBtn} onMouseDown={(e) => e.preventDefault()} onClick={() => apply((sel) => `__${sel}__`)} title="Sublinhado">
+          <u>U</u> Sublinhado
+        </button>
+        <button type="button" className={toolBtn} onMouseDown={(e) => e.preventDefault()} onClick={() => apply(asList, "item da lista")} title="Lista com marcadores">
+          ≡ Lista
+        </button>
+        <button type="button" className={toolBtn} onMouseDown={(e) => e.preventDefault()} onClick={asLink} title="Inserir link">
+          🔗 Link
+        </button>
+        <button type="button" className={toolBtn} onMouseDown={(e) => e.preventDefault()} onClick={() => {
+          const ta = ref.current;
+          if (!ta) return;
+          const pos = ta.selectionStart;
+          onChange(value.slice(0, pos) + "\n\n" + value.slice(pos));
+        }} title="Novo parágrafo">
+          ¶ Parágrafo
+        </button>
+      </div>
+      <textarea
+        ref={ref}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        rows={6}
+        className="w-full resize-y rounded-lg border border-neutral-200 bg-transparent p-3 text-sm leading-7 dark:border-neutral-700"
+      />
+      <p className="text-[11px] text-neutral-400">
+        💡 Para abrir um novo parágrafo, deixe uma linha em branco. Selecione o
+        texto e use os botões acima para formatar — o resultado aparece na
+        prévia do lado.
+      </p>
+    </div>
+  );
+}
 
 function PublishForm() {
   const search = useSearchParams();
@@ -329,11 +412,9 @@ function PublishForm() {
                   </div>
 
                   {block.type === "text" && (
-                    <textarea
+                    <TextBlockEditor
                       value={block.content}
-                      onChange={(e) => setBlock(idx, { ...block, content: e.target.value })}
-                      rows={4}
-                      className="w-full resize-y rounded-lg border border-neutral-200 bg-transparent p-3 text-sm leading-6 dark:border-neutral-700"
+                      onChange={(v) => setBlock(idx, { ...block, content: v })}
                     />
                   )}
                   {block.type === "heading" && (

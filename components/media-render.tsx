@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { RichText } from "@/lib/rich";
 import type { Block, MediaItem } from "@/lib/types";
 
 function Caption({ text, position }: { text?: string; position: "top" | "bottom" }) {
@@ -99,12 +100,11 @@ export function MediaRenderer({ blocks }: { blocks: Block[] }) {
             );
           case "text":
             return (
-              <p
+              <RichText
                 key={i}
-                className="text-[17px] leading-8 text-neutral-700 dark:text-neutral-300"
-              >
-                {block.content}
-              </p>
+                text={block.content}
+                className="space-y-4 text-[17px] leading-8 text-neutral-700 dark:text-neutral-300"
+              />
             );
           case "quote":
             return (
@@ -112,9 +112,11 @@ export function MediaRenderer({ blocks }: { blocks: Block[] }) {
                 key={i}
                 className="rounded-r-xl border-l-4 border-[var(--accent)] bg-[var(--accent-wash)] py-4 pl-5 pr-4 dark:bg-neutral-800/60"
               >
-                <p className="font-display text-xl italic leading-relaxed text-neutral-800 dark:text-neutral-200">
-                  “{block.content}”
-                </p>
+                <div className="font-display text-xl italic leading-relaxed text-neutral-800 dark:text-neutral-200">
+                  “
+                  <RichText text={block.content} className="inline" />
+                  ”
+                </div>
                 {block.author && (
                   <footer className="mt-2 text-sm font-semibold text-[var(--accent-strong)] dark:text-[var(--accent-strong)]">
                     — {block.author}
