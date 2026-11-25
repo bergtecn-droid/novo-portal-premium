@@ -4,7 +4,12 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { fileToResizedDataUrl } from "@/lib/image";
-import { loadSettings, saveSettings, useSettings } from "@/lib/settings";
+import {
+  DEFAULT_INST_LINKS,
+  loadSettings,
+  saveSettings,
+  useSettings,
+} from "@/lib/settings";
 import type { PortalSettings } from "@/lib/settings";
 import {
   checkCloudStatus,
@@ -470,6 +475,106 @@ export default function AdminPage() {
                 </p>
               </div>
 
+              <div>
+                <span className="text-sm font-semibold">Frase do rodapé</span>
+                <textarea
+                  value={settingsDraft.tagline ?? ""}
+                  onChange={(e) =>
+                    setSettingsDraft({ ...settingsDraft, tagline: e.target.value })
+                  }
+                  rows={2}
+                  placeholder="Ex: Jornalismo local com clareza e rapidez."
+                  className="mt-1 w-full rounded-lg border border-neutral-300 bg-transparent px-3 py-2 text-sm dark:border-neutral-700"
+                />
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-semibold">
+                    Links do rodapé (Institucional)
+                  </span>
+                  <button
+                    onClick={() =>
+                      setSettingsDraft({
+                        ...settingsDraft,
+                        instLinks: [
+                          ...(settingsDraft.instLinks ?? DEFAULT_INST_LINKS),
+                          { label: "" },
+                        ],
+                      })
+                    }
+                    className="rounded-full border border-neutral-300 px-3 py-1 text-xs font-semibold transition hover:border-[var(--accent)] dark:border-neutral-700"
+                  >
+                    + Adicionar item
+                  </button>
+                </div>
+                <div className="mt-2 space-y-2">
+                  {(settingsDraft.instLinks ?? []).map((l, i) => (
+                    <div key={i} className="flex flex-wrap items-center gap-2">
+                      <input
+                        value={l.label}
+                        onChange={(e) => {
+                          const next = [...(settingsDraft.instLinks ?? [])];
+                          next[i] = { ...next[i], label: e.target.value };
+                          setSettingsDraft({ ...settingsDraft, instLinks: next });
+                        }}
+                        placeholder="Texto (ex: Quem somos)"
+                        className="w-48 flex-1 rounded-lg border border-neutral-300 bg-transparent px-3 py-2 text-sm dark:border-neutral-700"
+                      />
+                      <input
+                        value={l.url ?? ""}
+                        onChange={(e) => {
+                          const next = [...(settingsDraft.instLinks ?? [])];
+                          next[i] = { ...next[i], url: e.target.value };
+                          setSettingsDraft({ ...settingsDraft, instLinks: next });
+                        }}
+                        placeholder="Endereço (pode ficar vazio)"
+                        className="w-48 flex-[2] rounded-lg border border-neutral-300 bg-transparent px-3 py-2 text-sm dark:border-neutral-700"
+                      />
+                      <button
+                        onClick={() => {
+                          const next = [...(settingsDraft.instLinks ?? [])];
+                          if (i === 0) return;
+                          [next[i - 1], next[i]] = [next[i], next[i - 1]];
+                          setSettingsDraft({ ...settingsDraft, instLinks: next });
+                        }}
+                        className="rounded-lg px-2 py-1 text-xs hover:bg-neutral-200 dark:hover:bg-neutral-700"
+                      >
+                        ↑
+                      </button>
+                      <button
+                        onClick={() => {
+                          const next = [...(settingsDraft.instLinks ?? [])];
+                          if (i >= next.length - 1) return;
+                          [next[i + 1], next[i]] = [next[i], next[i + 1]];
+                          setSettingsDraft({ ...settingsDraft, instLinks: next });
+                        }}
+                        className="rounded-lg px-2 py-1 text-xs hover:bg-neutral-200 dark:hover:bg-neutral-700"
+                      >
+                        ↓
+                      </button>
+                      <button
+                        onClick={() =>
+                          setSettingsDraft({
+                            ...settingsDraft,
+                            instLinks: (settingsDraft.instLinks ?? []).filter(
+                              (_, k) => k !== i,
+                            ),
+                          })
+                        }
+                        className="rounded-lg px-2 py-1 text-xs text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                  <p className="mt-2 text-xs text-neutral-400">
+                    Dica: se deixar o endereço vazio, o nome aparece no rodapé
+                    sem link.
+                  </p>
+                </div>
+              </div>
+
               <div className="flex flex-wrap items-center gap-3">
                 <button
                   onClick={() => {
@@ -478,6 +583,8 @@ export default function AdminPage() {
                       portalName: settingsDraft.portalName,
                       logoUrl: settingsDraft.logoUrl,
                       editorias: settingsDraft.editorias,
+                      tagline: settingsDraft.tagline,
+                      instLinks: settingsDraft.instLinks,
                     });
                     current.editorias.forEach((oldName, i) => {
                       const newName = settingsDraft.editorias[i];

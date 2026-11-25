@@ -1,9 +1,19 @@
 import Link from "next/link";
-import { fullPortalName, useSettings } from "@/lib/settings";
+import {
+  DEFAULT_INST_LINKS,
+  DEFAULT_TAGLINE,
+  fullPortalName,
+  useSettings,
+} from "@/lib/settings";
 
 export function SiteFooter() {
   const settings = useSettings();
   const editorias = settings.editorias;
+  const tagline = settings.tagline || DEFAULT_TAGLINE;
+  const instLinks =
+    settings.instLinks && settings.instLinks.length > 0
+      ? settings.instLinks
+      : DEFAULT_INST_LINKS;
 
   return (
     <footer className="mt-16 border-t border-neutral-200 bg-white dark:border-neutral-800 dark:bg-[#0d1526]">
@@ -26,8 +36,7 @@ export function SiteFooter() {
             </div>
           )}
           <p className="mt-3 max-w-xs text-sm text-neutral-500 dark:text-neutral-400">
-            Jornalismo local com clareza, profundidade e rapidez. Feito para
-            informar todos os dias.
+            {tagline}
           </p>
         </div>
         <div>
@@ -52,9 +61,33 @@ export function SiteFooter() {
             Institucional
           </h4>
           <ul className="mt-3 space-y-1 text-sm">
-            <li>Quem somos</li>
-            <li>Anuncie aqui</li>
-            <li>Fale com a redação</li>
+            {instLinks.map((l, i) => (
+              <li key={i}>
+                {l.url ? (
+                  l.url.startsWith("http") ? (
+                    <a
+                      href={l.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="hover:text-[var(--accent-strong)]"
+                    >
+                      {l.label}
+                    </a>
+                  ) : (
+                    <Link
+                      href={l.url}
+                      className="hover:text-[var(--accent-strong)]"
+                    >
+                      {l.label}
+                    </Link>
+                  )
+                ) : (
+                  <span className="text-neutral-600 dark:text-neutral-300">
+                    {l.label}
+                  </span>
+                )}
+              </li>
+            ))}
           </ul>
         </div>
       </div>
