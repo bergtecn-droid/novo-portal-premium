@@ -188,3 +188,28 @@ export async function deleteArticleFromServer(slug: string): Promise<boolean> {
     return false;
   }
 }
+
+export async function checkCloudStatus(): Promise<boolean | null> {
+  try {
+    const res = await fetch("/api/admin/sync");
+    if (res.status === 401) return null;
+    if (!res.ok) return null;
+    const data = (await res.json()) as { storage?: boolean };
+    return Boolean(data.storage);
+  } catch {
+    return null;
+  }
+}
+
+export async function syncAllLocalToServer(): Promise<{
+  total: number;
+  ok: number;
+}> {
+  const list = publishedArticles();
+  let ok = 0;
+  for (const article of list) {
+    const done = await syncArticleToServer(article);
+    if (done) ok += 1;
+  }
+  return { total: list.length, ok };
+}

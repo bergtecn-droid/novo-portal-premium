@@ -7,6 +7,7 @@ import { fileToResizedDataUrl } from "@/lib/image";
 import { loadSettings, saveSettings, useSettings } from "@/lib/settings";
 import type { PortalSettings } from "@/lib/settings";
 import {
+  checkCloudStatus,
   deleteArticleFromServer,
   formatDate,
   listArticles,
@@ -14,6 +15,7 @@ import {
   deleteArticle,
   upsertArticle,
   saveQuickActions,
+  syncAllLocalToServer,
   syncArticleToServer,
   defaultQuickActions,
   exportBackup,
@@ -50,6 +52,9 @@ export default function AdminPage() {
   const [adding, setAdding] = useState(false);
   const [newAction, setNewAction] = useState({ label: "", icon: "📝", href: "/" });
   const [backupMsg, setBackupMsg] = useState("");
+  const [cloudActive, setCloudActive] = useState<boolean | null>(null);
+  const [cloudBusy, setCloudBusy] = useState(false);
+  const [cloudMsg, setCloudMsg] = useState("");
   const [themeChoice, setThemeChoice] = useState("auto");
   const fileRef = useRef<HTMLInputElement>(null);
   const settings = useSettings();
@@ -74,6 +79,10 @@ export default function AdminPage() {
     load();
     window.addEventListener("portal-nova.update", load);
     return () => window.removeEventListener("portal-nova.update", load);
+  }, []);
+
+  useEffect(() => {
+    checkCloudStatus().then(setCloudActive);
   }, []);
 
   const publicadas = articles.filter((a) => a.status === "publicado");
@@ -493,6 +502,57 @@ export default function AdminPage() {
                 )}
               </div>
             </div>
+          )}
+        </section>
+
+        <section className="rounded-2xl border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-[#0f1a30]">
+          <h2 className="font-display text-lg font-bold">☁️ Nuvem &amp; compartilhamento</h2>
+          {cloudActive === null ? (
+            <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
+              Verificando a nuvem...
+            </p>
+          ) : cloudActive ? (
+            <>
+              <p className="mt-2 text-sm text-emerald-600 dark:text-emerald-400">
+                ✅ Nuvem ativa! Suas matérias publicadas ficam salvas no servidor
+                e o compartilhamento no WhatsApp mostra a foto e o título.
+              </p>
+              <div className="mt-4 flex flex-wrap items-center gap-2">
+                <button
+                  onClick={async () => {
+                    setCloudBusy(true);
+                    setCloudMsg("");
+                    const { total, ok } = await syncAllLocalToServer();
+                    setCloudBusy(false);
+                    setCloudMsg(
+                      ok === total
+                        ? `✅ ${ok} de ${total} matérias enviadas para a nuvem. O compartilhamento já mostra a foto!`
+                        : `⚠️ ${ok} de ${total} enviadas. Tente novamente para as que faltaram.`,
+                    );
+                  }}
+                  disabled={cloudBusy}
+                  className="rounded-full bg-[var(--accent)] px-4 py-2 text-sm font-bold text-neutral-950 transition hover:bg-[var(--accent-soft)] disabled:opacity-50"
+                >
+                  {cloudBusy
+                    ? "⏳ Enviando..."
+                    : "🚀 Enviar todas as matérias para a nuvem"}
+                </button>
+                {cloudMsg && (
+                  <span className="text-sm text-neutral-500 dark:text-neutral-400">
+                    {cloudMsg}
+                  </span>
+                )}
+              </div>
+            </>
+          ) : (
+            <p className="mt-2 rounded-lg bg-amber-500/10 px-3 py-2 text-sm text-amber-700 dark:text-amber-400">
+              ⚠️ A nuvem ainda <strong>não está ativa</strong>. Enquanto isso, as
+              matérias ficam salvas só neste aparelho e o WhatsApp não consegue
+              mostrar a foto. Ative no painel da Vercel: <strong>Storage → Create
+              Database → Blob → Connect → Redeploy</strong> (guia completo no
+              README). Depois, volte aqui e clique em “Enviar todas as matérias
+              para a nuvem”.
+            </p>
           )}
         </section>
 

@@ -7,7 +7,9 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { ArticleCard } from "@/components/article-card";
 import { MediaRenderer } from "@/components/media-render";
+import { seedArticles } from "@/lib/seed";
 import {
+  findArticle,
   formatDate,
   getArticle,
   publishedArticles,
@@ -36,9 +38,17 @@ export function ArticleView({ slug }: { slug: string }) {
           const remote = (Array.isArray(d.articles) ? d.articles : []).find(
             (a: Article) => a.slug === slug && a.status === "publicado",
           );
-          if (remote) setArticle(remote);
+          if (remote) {
+            setArticle(remote);
+            return;
+          }
+          const seed = findArticle(seedArticles, slug);
+          if (seed && seed.status === "publicado") setArticle(seed);
         })
-        .catch(() => {});
+        .catch(() => {
+          const seed = findArticle(seedArticles, slug);
+          if (seed && seed.status === "publicado") setArticle(seed);
+        });
     };
     load();
     window.addEventListener("portal-nova.update", load);

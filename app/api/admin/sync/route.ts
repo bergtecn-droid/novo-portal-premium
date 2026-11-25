@@ -1,11 +1,23 @@
 import { cookies } from "next/headers";
 import { ADMIN_COOKIE, adminToken } from "@/lib/auth";
-import { readPublished, writePublished } from "@/lib/server-articles";
+import {
+  materializeArticleMedia,
+  readPublished,
+  storageActive,
+  writePublished,
+} from "@/lib/server-articles";
 import type { Article } from "@/lib/types";
 
 async function authorized(): Promise<boolean> {
   const token = (await cookies()).get(ADMIN_COOKIE)?.value;
   return Boolean(token && token === (await adminToken()));
+}
+
+export async function GET() {
+  if (!(await authorized())) {
+    return Response.json({ error: "Não autorizado" }, { status: 401 });
+  }
+  return Response.json({ storage: storageActive() });
 }
 
 export async function POST(req: Request) {
@@ -17,10 +29,11 @@ export async function POST(req: Request) {
   if (!article || typeof article.slug !== "string") {
     return Response.json({ error: "Matéria inválida" }, { status: 400 });
   }
+  const materialized = await materializeArticleMedia(article);
   const list = await readPublished();
-  const idx = list.findIndex((a) => a.id === article.id);
-  if (idx >= 0) list[idx] = article;
-  else list.push(article);
+  const idx = list.findIndex((a) => a.id === materialized.id);
+  if (idx >= 0) list[idx] = materialized;
+  else list.push(materialized);
   await writePublished(list);
   return Response.json({ ok: true, total: list.length });
 }
