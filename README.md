@@ -32,3 +32,11 @@ lib/            tipos, dados de exemplo (seed), loja de dados (localStorage)
 ```
 
 > Os dados do demo ficam no `localStorage` do navegador (matérias de exemplo em `lib/seed.ts`). Para produção multiusuário, o próximo passo é plugar um banco de dados (Postgres/Supabase) e autenticação no /admin.
+
+## 🔐 Painel admin protegido por senha
+
+O `/admin` exige login.
+
+- Senha padrão do demo: `nova-admin-2025` — troque em produção!
+- Para definir sua senha: variável de ambiente `ADMIN_PASSWORD` (Vercel: *Project → Settings → Environment Variables*) + redeploy.
+- A sessão dura 30 dias (cookie `HttpOnly`).
