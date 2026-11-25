@@ -48,3 +48,8 @@ O portal tem 9 temas (Padrão, Natal, Ano Novo, Páscoa, Festa Junina, Verão, O
 - Configurado no painel admin → seção **"🎨 Tema do portal"**.
 - Modo **Automático**: o tema muda sozinho pelo calendário (Natal em dezembro, Ano Novo em janeiro, Páscoa em abril, Junina em junho/julho e as estações no resto do ano).
 - As cores são variáveis CSS (`--accent`, `--accent-soft`, `--accent-deep`, `--accent-wash`, `--accent-strong`) definidas em `app/globals.css` — novos temas são uma linha nova de CSS.
+
+## 🌐 Acessos
+
+- Portal: `https://novo-portal-premium.vercel.app`
+- Admin: `https://novo-portal-premium.vercel.app/admin`
