@@ -1,10 +1,24 @@
 import type { Metadata } from "next";
 import "./globals.css";
 
+const siteUrl =
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https://novo-portal-premium.vercel.app";
+
 export const metadata: Metadata = {
-  title: "Portal Nova — Notícias com clareza",
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: "Portal Nova — Notícias com clareza",
+    template: "%s — Portal Nova",
+  },
   description:
     "Portal de notícias moderno: cidade, política, economia, esportes, entretenimento e tecnologia.",
+  openGraph: {
+    type: "website",
+    siteName: "Portal Nova",
+    locale: "pt_BR",
+    url: siteUrl,
+  },
+  twitter: { card: "summary_large_image" },
 };
 
 const themeInit = `

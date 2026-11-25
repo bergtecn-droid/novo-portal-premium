@@ -2,9 +2,18 @@
 
 import type { Article } from "./types";
 import { seedArticles } from "./seed";
+import { sortArticles, slugify, findArticle } from "./articles";
 
 const KEY = "portal-nova.articles.v1";
 const ACTIONS_KEY = "portal-nova.quickActions.v1";
+
+export {
+  sortArticles,
+  findArticle,
+  slugify,
+  readingTime,
+  formatDate,
+} from "./articles";
 
 let cache: Article[] | null = null;
 
@@ -33,9 +42,7 @@ function write(articles: Article[]) {
 }
 
 export function listArticles(): Article[] {
-  return [...read()].sort(
-    (a, b) => +new Date(b.publishedAt) - +new Date(a.publishedAt),
-  );
+  return sortArticles(read());
 }
 
 export function publishedArticles(): Article[] {
@@ -43,7 +50,7 @@ export function publishedArticles(): Article[] {
 }
 
 export function getArticle(slug: string): Article | undefined {
-  return listArticles().find((a) => a.slug === slug);
+  return findArticle(listArticles(), slug);
 }
 
 export function upsertArticle(article: Article) {
@@ -56,36 +63,6 @@ export function upsertArticle(article: Article) {
 
 export function deleteArticle(id: string) {
   write(read().filter((a) => a.id !== id));
-}
-
-export function slugify(text: string): string {
-  return text
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 80);
-}
-
-export function readingTime(article: Article): number {
-  const words = article.blocks
-    .map((b) => {
-      if (b.type === "text" || b.type === "heading" || b.type === "quote")
-        return b.content;
-      return "";
-    })
-    .join(" ")
-    .split(/\s+/).length;
-  return Math.max(1, Math.round(words / 200));
-}
-
-export function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("pt-BR", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
 }
 
 export interface QuickAction {
