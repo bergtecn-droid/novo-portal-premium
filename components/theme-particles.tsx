@@ -1,6 +1,5 @@
 "use client";
 
-import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
 const PARTICLES: Record<string, string[]> = {
@@ -14,22 +13,21 @@ const PARTICLES: Record<string, string[]> = {
   primavera: ["🌸", "🌷", "🌼", "🦋", "🌿"],
 };
 
-const COUNT = 16;
+const COUNT = 18;
 
 function randomBlob(emojiPool: string[]) {
   return {
     emoji: emojiPool[Math.floor(Math.random() * emojiPool.length)],
     left: Math.random() * 100,
-    duration: 11 + Math.random() * 14,
+    duration: 10 + Math.random() * 12,
     delay: -Math.random() * 20,
-    size: 14 + Math.random() * 18,
+    size: 16 + Math.random() * 18,
     sway: Math.random() > 0.5 ? 24 + Math.random() * 60 : -(24 + Math.random() * 60),
-    opacity: 0.55 + Math.random() * 0.4,
+    opacity: 0.68 + Math.random() * 0.3,
   };
 }
 
 export function ThemeParticles() {
-  const pathname = usePathname();
   const [blobs, setBlobs] = useState<ReturnType<typeof randomBlob>[]>([]);
   const [theme, setTheme] = useState<string>("padrao");
 
@@ -47,7 +45,6 @@ export function ThemeParticles() {
     return () => observer.disconnect();
   }, []);
 
-  if (!pathname || pathname.startsWith("/admin")) return null;
   if (!blobs.length || theme === "padrao") return null;
 
   return (
