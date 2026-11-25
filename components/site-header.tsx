@@ -24,15 +24,25 @@ export function SiteHeader() {
     <header className="sticky top-0 z-40 border-b border-neutral-200 bg-white/90 backdrop-blur dark:border-neutral-800 dark:bg-[#0b1120]/90">
       <div className="ticker overflow-hidden bg-amber-500 text-[13px] font-semibold text-neutral-950">
         <div className="flex items-center gap-3 px-4 py-1.5">
-          <span className="shrink-0 rounded-full bg-neutral-950 px-2 py-0.5 text-[11px] uppercase tracking-wide text-amber-400">
+          <span className="relative z-10 shrink-0 rounded-full bg-neutral-950 px-2 py-0.5 text-[11px] uppercase tracking-wide text-amber-400">
             Últimas
           </span>
-          <div className="ticker-track gap-10 whitespace-nowrap">
-            {tickerItems.map((t, i) => (
-              <span key={i} className="opacity-90">
-                • {t}
-              </span>
-            ))}
+          <div
+            className="relative flex-1 overflow-hidden"
+            style={{
+              maskImage:
+                "linear-gradient(to right, transparent, black 14px, black calc(100% - 24px), transparent)",
+              WebkitMaskImage:
+                "linear-gradient(to right, transparent, black 14px, black calc(100% - 24px), transparent)",
+            }}
+          >
+            <div className="ticker-track gap-10 whitespace-nowrap">
+              {tickerItems.map((t, i) => (
+                <span key={i} className="opacity-90">
+                  • {t}
+                </span>
+              ))}
+            </div>
           </div>
         </div>
       </div>
