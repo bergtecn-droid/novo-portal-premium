@@ -48,34 +48,41 @@ body {
   position: absolute;
   top: -60px;
   line-height: 1;
-  animation-name: themeFall;
+  opacity: 0.8;
+  animation-name: themeFallA;
+  animation-duration: 12s;
   animation-timing-function: linear;
   animation-iteration-count: infinite;
   will-change: transform;
   filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.15));
 }
 
-@keyframes themeFall {
-  0% {
-    transform: translateY(-6vh) translateX(0) rotate(0deg);
-    opacity: 0;
-  }
-  10% {
-    opacity: var(--p-opacity, 0.85);
-  }
-  90% {
-    opacity: var(--p-opacity, 0.85);
-  }
-  100% {
-    transform: translateY(108vh) translateX(var(--p-sway, 40px)) rotate(340deg);
-    opacity: 0;
-  }
+@keyframes themeFallA {
+  0% { transform: translateY(-6vh) translateX(0px) rotate(0deg); opacity: 0; }
+  10% { opacity: 0.8; }
+  90% { opacity: 0.8; }
+  100% { transform: translateY(108vh) translateX(50px) rotate(340deg); opacity: 0; }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .theme-particle {
-    display: none;
-  }
+@keyframes themeFallB {
+  0% { transform: translateY(-6vh) translateX(0px) rotate(15deg); opacity: 0; }
+  10% { opacity: 0.8; }
+  90% { opacity: 0.8; }
+  100% { transform: translateY(108vh) translateX(-50px) rotate(-340deg); opacity: 0; }
+}
+
+@keyframes themeFallC {
+  0% { transform: translateY(-6vh) translateX(0px) rotate(0deg); opacity: 0; }
+  10% { opacity: 0.9; }
+  90% { opacity: 0.9; }
+  100% { transform: translateY(108vh) translateX(26px) rotate(300deg); opacity: 0; }
+}
+
+@keyframes themeFallD {
+  0% { transform: translateY(-6vh) translateX(0px) rotate(10deg); opacity: 0; }
+  10% { opacity: 0.7; }
+  90% { opacity: 0.7; }
+  100% { transform: translateY(108vh) translateX(-80px) rotate(-300deg); opacity: 0; }
 }
 
 .theme-banner {

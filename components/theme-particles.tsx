@@ -13,17 +13,18 @@ const PARTICLES: Record<string, string[]> = {
   primavera: ["🌸", "🌷", "🌼", "🦋", "🌿"],
 };
 
-const COUNT = 18;
+const FALLS = ["themeFallA", "themeFallB", "themeFallC", "themeFallD"];
+
+const COUNT = 20;
 
 function randomBlob(emojiPool: string[]) {
   return {
     emoji: emojiPool[Math.floor(Math.random() * emojiPool.length)],
     left: Math.random() * 100,
-    duration: 10 + Math.random() * 12,
+    duration: 9 + Math.random() * 11,
     delay: -Math.random() * 20,
-    size: 16 + Math.random() * 18,
-    sway: Math.random() > 0.5 ? 24 + Math.random() * 60 : -(24 + Math.random() * 60),
-    opacity: 0.68 + Math.random() * 0.3,
+    size: 18 + Math.random() * 20,
+    opacity: 0.78 + Math.random() * 0.22,
   };
 }
 
@@ -48,7 +49,7 @@ export function ThemeParticles() {
   if (!blobs.length || theme === "padrao") return null;
 
   return (
-    <div aria-hidden className="pointer-events-none fixed inset-0 z-[25] overflow-hidden">
+    <div aria-hidden className="pointer-events-none fixed top-0 right-0 bottom-0 left-0 z-[25] overflow-hidden">
       {blobs.map((b, i) => (
         <span
           key={`${theme}-${i}`}
@@ -58,8 +59,7 @@ export function ThemeParticles() {
             fontSize: `${b.size}px`,
             animationDuration: `${b.duration}s`,
             animationDelay: `${b.delay}s`,
-            ["--p-sway" as string]: `${b.sway}px`,
-            ["--p-opacity" as string]: b.opacity,
+            animationName: FALLS[i % FALLS.length],
           }}
         >
           {b.emoji}
