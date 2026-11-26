@@ -1011,14 +1011,45 @@ export default function AdminPage() {
               </div>
             </>
           ) : (
-            <p className="mt-2 rounded-lg bg-amber-500/10 px-3 py-2 text-sm text-amber-700 dark:text-amber-400">
-              ⚠️ A nuvem ainda <strong>não está ativa</strong>. Enquanto isso, as
-              matérias ficam salvas só neste aparelho e o WhatsApp não consegue
-              mostrar a foto. Ative no painel da Vercel: <strong>Storage → Create
-              Database → Blob → Connect → Redeploy</strong> (guia completo no
-              README). Depois, volte aqui e clique em “Enviar todas as matérias
-              para a nuvem”.
-            </p>
+            <div className="mt-2 rounded-lg bg-amber-500/10 px-3 py-2 text-sm text-amber-700 dark:text-amber-400">
+              <p>
+                ⚠️ A nuvem ainda <strong>não está ativa</strong>. Enquanto isso, as
+                matérias ficam salvas só neste aparelho e o WhatsApp não consegue
+                mostrar a foto. Siga o passo a passo:
+              </p>
+              <ol className="mt-2 list-decimal space-y-1 pl-5">
+                <li>
+                  Abra{" "}
+                  <a
+                    href="https://vercel.com/dashboard"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="font-semibold underline"
+                  >
+                    vercel.com/dashboard
+                  </a>{" "}
+                  e clique no projeto <strong>novo-portal-premium</strong>
+                </li>
+                <li>No menu superior do projeto, entre na aba <strong>Storage</strong></li>
+                <li>
+                  <strong>Create Database</strong> → escolha <strong>Blob</strong>
+                </li>
+                <li>
+                  Nome: <code>portal-nova</code>. IMPORTANTE: <strong>marque a
+                  caixinha</strong> “Add a read-write token env var to this
+                  connection” — sem ela a nuvem não liga!
+                </li>
+                <li>Clique em <strong>Create</strong> e confirme a conexão com o projeto</li>
+                <li>
+                  Aba <strong>Deployments</strong> → três pontinhos (⋯) no último
+                  deploy → <strong>Redeploy</strong> → confirme
+                </li>
+                <li>
+                  Volte aqui e recarregue a página (F5) — o aviso vira
+                  “✅ Nuvem ativa”
+                </li>
+              </ol>
+            </div>
           )}
         </section>
 
