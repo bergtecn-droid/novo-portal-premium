@@ -1,8 +1,10 @@
 import { createHash } from "node:crypto";
 import { head, put } from "@vercel/blob";
 import type { Article, Block, MediaItem } from "./types";
+import type { PortalSettings } from "./settings";
 
 const FILE_NAME = "published-articles.json";
+const SETTINGS_FILE_NAME = "portal-settings.json";
 
 const MIME_EXT: Record<string, string> = {
   "image/jpeg": "jpg",
@@ -86,6 +88,46 @@ export async function materializeArticleMedia(
     }
   }
   return { ...article, cover, blocks };
+}
+
+export async function readPortalSettings(): Promise<PortalSettings | null> {
+  if (!storageActive()) return null;
+  try {
+    const info = await head(SETTINGS_FILE_NAME);
+    const res = await fetch(info.url, { cache: "no-store" });
+    if (!res.ok) return null;
+    const data = (await res.json()) as { settings?: PortalSettings };
+    return data.settings ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export async function writePortalSettings(
+  settings: PortalSettings,
+): Promise<void> {
+  if (!storageActive()) return;
+  await put(SETTINGS_FILE_NAME, JSON.stringify({ settings }, null, 2), {
+    access: "public",
+    addRandomSuffix: false,
+    allowOverwrite: true,
+  });
+}
+
+export async function materializePortalSettings(
+  settings: PortalSettings,
+): Promise<PortalSettings> {
+  if (!storageActive()) return settings;
+  const banners = await Promise.all(
+    (settings.banners ?? []).map(async (b) => ({
+      ...b,
+      imageUrl: await toCloudUrl(b.imageUrl),
+    })),
+  );
+  const logoUrl = settings.logoUrl
+    ? await toCloudUrl(settings.logoUrl)
+    : settings.logoUrl;
+  return { ...settings, banners, logoUrl };
 }
 
 export async function writePublished(articles: Article[]): Promise<void> {

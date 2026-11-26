@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { ArticleCard } from "@/components/article-card";
+import { BannerStrip } from "@/components/banners";
 import { useSettings } from "@/lib/settings";
 import { usePublishedArticles } from "@/lib/store";
 import type { Article } from "@/lib/types";
@@ -43,6 +44,8 @@ export default function HomePage() {
             </Link>
           </section>
         )}
+
+        <BannerStrip position="topo" />
 
         {secondary.length > 0 && (
           <section className="mt-10">
@@ -99,6 +102,8 @@ export default function HomePage() {
           </div>
 
           <aside className="space-y-8">
+            <BannerStrip position="lateral" />
+
             <section className="rounded-2xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-[#0f1a30]">
               <h3 className="font-display text-lg font-bold">
                 📈 Mais lidas da semana
@@ -115,9 +120,12 @@ export default function HomePage() {
               <p className="mt-2 text-sm font-medium">
                 Seu negócio visto por milhares de leitores todos os dias.
               </p>
-              <button className="mt-4 rounded-full bg-neutral-950 px-5 py-2 text-sm font-bold text-[var(--accent-strong)] transition hover:bg-neutral-800">
+              <Link
+                href="/p/anuncie-aqui"
+                className="mt-4 inline-block rounded-full bg-neutral-950 px-5 py-2 text-sm font-bold text-[var(--accent-strong)] transition hover:bg-neutral-800"
+              >
                 Quero anunciar
-              </button>
+              </Link>
             </section>
 
             <section className="rounded-2xl border border-neutral-200 p-5 dark:border-neutral-800">

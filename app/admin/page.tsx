@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { fileToResizedDataUrl } from "@/lib/image";
+import type { Banner } from "@/lib/settings";
 import {
   DEFAULT_INST_LINKS,
   loadSettings,
@@ -70,6 +71,8 @@ export default function AdminPage() {
   const [cloudMsg, setCloudMsg] = useState("");
   const [radioDraft, setRadioDraft] = useState<RadioConfig | null>(null);
   const [radioMsg, setRadioMsg] = useState("");
+  const bannerPhotoRef = useRef<HTMLInputElement>(null);
+  const [bannerPhotoIdx, setBannerPhotoIdx] = useState<number | null>(null);
   const [themeChoice, setThemeChoice] = useState("auto");
   const fileRef = useRef<HTMLInputElement>(null);
   const settings = useSettings();
@@ -493,6 +496,29 @@ export default function AdminPage() {
               </div>
 
               <div>
+                <label className="text-sm block">
+                  <span className="font-semibold">
+                    WhatsApp de contato (anunciantes e redação)
+                  </span>
+                  <input
+                    value={settingsDraft.contactWhatsapp ?? ""}
+                    onChange={(e) =>
+                      setSettingsDraft({
+                        ...settingsDraft,
+                        contactWhatsapp: e.target.value,
+                      })
+                    }
+                    placeholder="Ex: (91) 99999-9999"
+                    className="mt-1 w-full rounded-lg border border-neutral-300 bg-transparent px-3 py-2 dark:border-neutral-700"
+                  />
+                </label>
+                <p className="mt-1 text-xs text-neutral-400">
+                  Com esse número, o formulário “Quero anunciar” envia as
+                  mensagens dos anunciantes direto para o WhatsApp do cliente.
+                </p>
+              </div>
+
+              <div>
                 <span className="text-sm font-semibold">Frase do rodapé</span>
                 <textarea
                   value={settingsDraft.tagline ?? ""}
@@ -648,6 +674,8 @@ export default function AdminPage() {
                       tagline: settingsDraft.tagline,
                       instLinks: settingsDraft.instLinks,
                       pages: settingsDraft.pages,
+                      banners: settingsDraft.banners,
+                      contactWhatsapp: settingsDraft.contactWhatsapp,
                     });
                     current.editorias.forEach((oldName, i) => {
                       const newName = settingsDraft.editorias[i];
@@ -671,6 +699,142 @@ export default function AdminPage() {
                   <span className="text-sm text-neutral-500 dark:text-neutral-400">{settingsMsg}</span>
                 )}
               </div>
+            </div>
+          )}
+        </section>
+
+        <section className="rounded-2xl border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-[#0f1a30]">
+          <h2 className="font-display text-lg font-bold">📣 Banners e anúncios</h2>
+          <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+            Suba a foto do banner do cliente e o link do site/WhatsApp dele. O
+            banner aparece no portal na posição escolhida.
+          </p>
+          {settingsDraft && (
+            <div className="mt-4 space-y-3">
+              {(settingsDraft.banners ?? []).map((b, i) => (
+                <div key={b.id} className="rounded-xl border border-neutral-200 p-3 dark:border-neutral-700">
+                  <div className="flex flex-wrap items-start gap-3">
+                    <img src={b.imageUrl} alt="" className="h-16 w-28 rounded-lg border border-neutral-200 object-cover dark:border-neutral-700" />
+                    <div className="min-w-[200px] flex-1 space-y-2">
+                      <input
+                        value={b.title}
+                        onChange={(e) => {
+                          const next = [...(settingsDraft.banners ?? [])];
+                          next[i] = { ...next[i], title: e.target.value };
+                          setSettingsDraft({ ...settingsDraft, banners: next });
+                        }}
+                        placeholder="Nome do anunciante (ex: Loja do João)"
+                        className="w-full rounded-lg border border-neutral-300 bg-transparent px-3 py-2 text-sm dark:border-neutral-700"
+                      />
+                      <input
+                        value={b.linkUrl ?? ""}
+                        onChange={(e) => {
+                          const next = [...(settingsDraft.banners ?? [])];
+                          next[i] = { ...next[i], linkUrl: e.target.value };
+                          setSettingsDraft({ ...settingsDraft, banners: next });
+                        }}
+                        placeholder="Link do cliente ao clicar no banner (pode ficar vazio)"
+                        className="w-full rounded-lg border border-neutral-300 bg-transparent px-3 py-2 text-sm dark:border-neutral-700"
+                      />
+                      <div className="flex flex-wrap items-center gap-2">
+                        <select
+                          value={b.position}
+                          onChange={(e) => {
+                            const next = [...(settingsDraft.banners ?? [])];
+                            next[i] = { ...next[i], position: e.target.value as Banner["position"] };
+                            setSettingsDraft({ ...settingsDraft, banners: next });
+                          }}
+                          className="rounded-lg border border-neutral-300 bg-transparent px-2 py-1.5 text-xs dark:border-neutral-700"
+                        >
+                          <option value="topo">Topo da home</option>
+                          <option value="lateral">Lateral da home</option>
+                          <option value="materia">Dentro da matéria</option>
+                        </select>
+                        <button
+                          onClick={() => {
+                            setBannerPhotoIdx(i);
+                            bannerPhotoRef.current?.click();
+                          }}
+                          className="rounded-full border border-neutral-300 px-3 py-1.5 text-xs font-semibold transition hover:border-[var(--accent)] dark:border-neutral-700"
+                        >
+                          📷 Trocar foto
+                        </button>
+                        <label className="flex items-center gap-1.5 text-xs font-semibold">
+                          <input
+                            type="checkbox"
+                            checked={b.active}
+                            onChange={(e) => {
+                              const next = [...(settingsDraft.banners ?? [])];
+                              next[i] = { ...next[i], active: e.target.checked };
+                              setSettingsDraft({ ...settingsDraft, banners: next });
+                            }}
+                            className="h-3.5 w-3.5 accent-[var(--accent)]"
+                          />
+                          Ativo
+                        </label>
+                        <button
+                          onClick={() =>
+                            setSettingsDraft({
+                              ...settingsDraft,
+                              banners: (settingsDraft.banners ?? []).filter((_, k) => k !== i),
+                            })
+                          }
+                          className="ml-auto rounded-lg px-2 py-1 text-xs text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30"
+                        >
+                          ✕ Remover
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  onClick={() => {
+                    setBannerPhotoIdx(null);
+                    bannerPhotoRef.current?.click();
+                  }}
+                  className="rounded-full border border-dashed border-neutral-300 px-4 py-2 text-sm font-semibold text-neutral-500 transition hover:border-[var(--accent)] dark:border-neutral-600"
+                >
+                  📤 Adicionar banner (enviar foto do computador)
+                </button>
+                <span className="text-xs text-neutral-400">
+                  Recomendado: foto larga e horizontal (ex: 1200 × 300).
+                </span>
+              </div>
+              <input
+                ref={bannerPhotoRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  e.target.value = "";
+                  if (!file) return;
+                  try {
+                    const dataUrl = await fileToResizedDataUrl(file, 1400, 0.82);
+                    const next = [...(settingsDraft.banners ?? [])];
+                    if (bannerPhotoIdx === null) {
+                      next.push({
+                        id: crypto.randomUUID(),
+                        title: "",
+                        imageUrl: dataUrl,
+                        active: true,
+                        position: "topo" as const,
+                      });
+                    } else {
+                      next[bannerPhotoIdx] = {
+                        ...next[bannerPhotoIdx],
+                        imageUrl: dataUrl,
+                      };
+                    }
+                    setBannerPhotoIdx(null);
+                    setSettingsDraft({ ...settingsDraft, banners: next });
+                  } catch {
+                    setSettingsMsg("❌ Não foi possível carregar a foto do banner.");
+                  }
+                }}
+              />
             </div>
           )}
         </section>

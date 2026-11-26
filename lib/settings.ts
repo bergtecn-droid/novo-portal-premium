@@ -14,6 +14,28 @@ export interface InstPage {
   content: string;
 }
 
+export type BannerPosition = "topo" | "lateral" | "materia";
+
+export interface Banner {
+  id: string;
+  title: string;
+  imageUrl: string;
+  linkUrl?: string;
+  active: boolean;
+  position: BannerPosition;
+}
+
+export interface PortalSettings {
+  portalName: string;
+  logoUrl?: string;
+  editorias: Editoria[];
+  tagline?: string;
+  instLinks?: InstLink[];
+  pages?: InstPage[];
+  banners?: Banner[];
+  contactWhatsapp?: string;
+}
+
 export interface PortalSettings {
   portalName: string;
   logoUrl?: string;
@@ -105,6 +127,30 @@ export function loadSettings(): PortalSettings {
               content: String(p?.content ?? ""),
             }))
           : DEFAULTS.pages,
+      banners:
+        Array.isArray(parsed.banners)
+          ? parsed.banners
+              .map((b) => ({
+                id: String(b?.id ?? "").trim(),
+                title: String(b?.title ?? "").trim(),
+                imageUrl: String(b?.imageUrl ?? ""),
+                linkUrl:
+                  typeof b?.linkUrl === "string" && b.linkUrl.trim()
+                    ? b.linkUrl.trim()
+                    : undefined,
+                active: b?.active !== false,
+                position: (b?.position === "materia"
+                  ? "materia"
+                  : b?.position === "lateral"
+                    ? "lateral"
+                    : "topo") as BannerPosition,
+              }))
+              .filter((b) => b.id && b.imageUrl)
+          : [],
+      contactWhatsapp:
+        typeof parsed.contactWhatsapp === "string"
+          ? parsed.contactWhatsapp
+          : undefined,
     };
   } catch {
     return DEFAULTS;
@@ -129,9 +175,18 @@ export function saveSettings(settings: PortalSettings) {
       title: p.title.trim(),
       content: p.content,
     })),
+    banners: (settings.banners ?? []).filter(
+      (b) => b.id && b.imageUrl,
+    ),
+    contactWhatsapp: settings.contactWhatsapp?.trim() || undefined,
   };
   window.localStorage.setItem(PORTAL_SETTINGS_KEY, JSON.stringify(clean));
   window.dispatchEvent(new CustomEvent("portal-nova.settings"));
+  fetch("/api/admin/settings", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ settings: clean }),
+  }).catch(() => {});
 }
 
 export function resetSettings() {
@@ -152,6 +207,19 @@ export function useSettings(): PortalSettings {
     const load = () => setSettings(loadSettings());
     load();
     window.addEventListener("portal-nova.settings", load);
+    fetch("/api/settings")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: { settings?: PortalSettings | null } | null) => {
+        const remote = d?.settings;
+        if (remote && typeof remote === "object" && remote.portalName) {
+          window.localStorage.setItem(
+            PORTAL_SETTINGS_KEY,
+            JSON.stringify(remote),
+          );
+          setSettings(loadSettings());
+        }
+      })
+      .catch(() => {});
     return () => window.removeEventListener("portal-nova.settings", load);
   }, []);
 

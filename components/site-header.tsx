@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { publishedArticles } from "@/lib/store";
 import { useSettings } from "@/lib/settings";
@@ -9,6 +10,8 @@ import { ThemeToggle } from "./theme-toggle";
 export function SiteHeader() {
   const [headlines, setHeadlines] = useState<string[]>([]);
   const [open, setOpen] = useState(false);
+  const [searchText, setSearchText] = useState("");
+  const router = useRouter();
   const settings = useSettings();
   const editorias = settings.editorias;
 
@@ -84,6 +87,30 @@ export function SiteHeader() {
         </nav>
 
         <div className="flex items-center gap-2">
+          <form
+            className="hidden items-center lg:flex"
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (searchText.trim()) {
+                router.push(`/busca?q=${encodeURIComponent(searchText.trim())}`);
+                setSearchText("");
+              }
+            }}
+          >
+            <input
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              placeholder="Buscar..."
+              className="w-40 rounded-full border border-neutral-300 bg-transparent px-3 py-1.5 text-sm dark:border-neutral-700"
+            />
+            <button
+              type="submit"
+              aria-label="Buscar"
+              className="ml-1 flex h-8 w-8 items-center justify-center rounded-full border border-neutral-300 text-sm transition hover:border-[var(--accent)] dark:border-neutral-700"
+            >
+              🔍
+            </button>
+          </form>
           <ThemeToggle />
           <Link
             href="/admin"
@@ -103,6 +130,30 @@ export function SiteHeader() {
 
       {open && (
         <nav className="grid grid-cols-2 gap-1 border-t border-neutral-200 px-4 py-3 md:hidden dark:border-neutral-800">
+          <form
+            className="col-span-2 flex gap-2"
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (searchText.trim()) {
+                router.push(`/busca?q=${encodeURIComponent(searchText.trim())}`);
+                setSearchText("");
+                setOpen(false);
+              }
+            }}
+          >
+            <input
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              placeholder="Buscar no portal..."
+              className="flex-1 rounded-full border border-neutral-300 bg-transparent px-3 py-2 text-sm dark:border-neutral-700"
+            />
+            <button
+              type="submit"
+              className="rounded-full bg-[var(--accent)] px-4 py-2 text-sm font-bold text-neutral-950"
+            >
+              🔍
+            </button>
+          </form>
           {editorias.map((e) => (
             <Link
               key={e}

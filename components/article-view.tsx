@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { ArticleCard } from "@/components/article-card";
+import { BannerStrip } from "@/components/banners";
 import { MediaRenderer } from "@/components/media-render";
 import { seedArticles } from "@/lib/seed";
 import {
@@ -209,15 +210,18 @@ export function ArticleView({ slug }: { slug: string }) {
           {article.tags.length > 0 && (
             <div className="mt-10 flex flex-wrap gap-2">
               {article.tags.map((tag) => (
-                <span
+                <Link
                   key={tag}
-                  className="rounded-full bg-neutral-100 px-3 py-1 text-xs font-semibold text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300"
+                  href={`/tag/${encodeURIComponent(tag.toLowerCase())}`}
+                  className="rounded-full bg-neutral-100 px-3 py-1 text-xs font-semibold text-neutral-600 transition hover:bg-[var(--accent-wash)] dark:bg-neutral-800 dark:text-neutral-300"
                 >
                   #{tag}
-                </span>
+                </Link>
               ))}
             </div>
           )}
+
+          <BannerStrip position="materia" />
         </article>
 
         {related.length > 0 && (
