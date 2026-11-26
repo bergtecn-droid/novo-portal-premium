@@ -587,7 +587,52 @@ export default function AdminPage() {
                   ))}
                   <p className="mt-2 text-xs text-neutral-400">
                     Dica: se deixar o endereço vazio, o nome aparece no rodapé
-                    sem link.
+                    sem link. Endereços prontos das páginas:
+                    /p/quem-somos, /p/anuncie-aqui, /p/fale-com-a-redacao.
+                  </p>
+                </div>
+              </div>
+
+              <div>
+                <span className="text-sm font-semibold">
+                  Páginas institucionais (texto de cada página)
+                </span>
+                <div className="mt-2 space-y-4">
+                  {(settingsDraft.pages ?? []).map((p, i) => (
+                    <div
+                      key={p.slug || i}
+                      className="rounded-xl border border-neutral-200 p-3 dark:border-neutral-700"
+                    >
+                      <input
+                        value={p.title}
+                        onChange={(e) => {
+                          const next = [...(settingsDraft.pages ?? [])];
+                          next[i] = { ...next[i], title: e.target.value };
+                          setSettingsDraft({ ...settingsDraft, pages: next });
+                        }}
+                        placeholder="Título da página"
+                        className="w-full rounded-lg border border-neutral-300 bg-transparent px-3 py-2 text-sm font-bold dark:border-neutral-700"
+                      />
+                      <textarea
+                        value={p.content}
+                        onChange={(e) => {
+                          const next = [...(settingsDraft.pages ?? [])];
+                          next[i] = { ...next[i], content: e.target.value };
+                          setSettingsDraft({ ...settingsDraft, pages: next });
+                        }}
+                        rows={5}
+                        placeholder="Texto da página..."
+                        className="mt-2 w-full rounded-lg border border-neutral-300 bg-transparent px-3 py-2 text-sm dark:border-neutral-700"
+                      />
+                      <p className="mt-1 text-[11px] text-neutral-400">
+                        Página: /p/{p.slug} • Dá para usar **negrito**, listas
+                        com “- ” e parágrafos (linha vazia).
+                      </p>
+                    </div>
+                  ))}
+                  <p className="text-xs text-neutral-400">
+                    Esses textos aparecem quando o visitante clica nos links do
+                    rodapé (Quem somos, Anuncie aqui, Fale com a redação).
                   </p>
                 </div>
               </div>
@@ -602,6 +647,7 @@ export default function AdminPage() {
                       editorias: settingsDraft.editorias,
                       tagline: settingsDraft.tagline,
                       instLinks: settingsDraft.instLinks,
+                      pages: settingsDraft.pages,
                     });
                     current.editorias.forEach((oldName, i) => {
                       const newName = settingsDraft.editorias[i];
