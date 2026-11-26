@@ -2,12 +2,13 @@
 
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { radioStations } from "@/lib/radio";
+import { radioStations, useRadioConfig } from "@/lib/radio";
 
 export function RadioPlayer() {
   const pathname = usePathname();
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const stations = radioStations();
+  const config = useRadioConfig();
+  const stations = radioStations(config);
   const [stationIdx, setStationIdx] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [volume, setVolume] = useState(0.7);
@@ -47,6 +48,8 @@ export function RadioPlayer() {
   }, []);
 
   if (!pathname || pathname.startsWith("/admin")) return null;
+  if (!config.enabled || stations.length === 0) return null;
+  const activeIdx = Math.min(stationIdx, stations.length - 1);
 
   const toggle = () => {
     const audio = audioRef.current;
@@ -55,7 +58,7 @@ export function RadioPlayer() {
       audio.pause();
       return;
     }
-    audio.src = stations[stationIdx].url;
+    audio.src = stations[activeIdx].url;
     audio.play().catch(() => setPlaying(false));
   };
 
@@ -69,7 +72,7 @@ export function RadioPlayer() {
     }
   };
 
-  const current = stations[stationIdx];
+  const current = stations[activeIdx];
 
   return (
     <div className="fixed bottom-4 left-1/2 z-40 w-[calc(100%-2rem)] max-w-md -translate-x-1/2">
@@ -125,16 +128,16 @@ export function RadioPlayer() {
           <div className="mt-2 space-y-1 border-t border-neutral-800 pt-2">
             {stations.map((station, idx) => (
               <button
-                key={station.url}
+                key={`${station.url}-${idx}`}
                 onClick={() => changeStation(idx)}
                 className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm transition ${
-                  idx === stationIdx
+                  idx === activeIdx
                     ? "bg-[var(--accent-wash)] font-semibold text-[var(--accent-strong)]"
                     : "text-neutral-300 hover:bg-neutral-800"
                 }`}
               >
                 📻 {station.name}
-                {idx === stationIdx && <span className="ml-auto text-xs">▶</span>}
+                {idx === activeIdx && <span className="ml-auto text-xs">▶</span>}
               </button>
             ))}
           </div>

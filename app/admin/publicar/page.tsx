@@ -244,7 +244,9 @@ function PublishForm() {
     if (status === "publicado") {
       const ok = await syncArticleToServer(saved);
       if (!ok) {
-        console.warn("Não foi possível sincronizar com o servidor.");
+        window.alert(
+          "⚠️ A matéria foi salva neste aparelho, mas NÃO foi enviada para a nuvem.\n\nSem a nuvem ativa, o compartilhamento no WhatsApp não mostra a foto.\nAtive a nuvem no painel da Vercel (Storage → Blob) e depois clique em ‘Enviar todas as matérias para a nuvem’.",
+        );
       }
     }
     window.location.href = "/admin";

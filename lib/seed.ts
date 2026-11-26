@@ -87,7 +87,7 @@ export const seedArticles: Article[] = [
     ],
     publishedAt: "2025-09-20T09:00:00.000Z",
     status: "publicado",
-    views: 8421,
+    views: 0,
     featured: true,
   },
   {
@@ -137,7 +137,7 @@ export const seedArticles: Article[] = [
     ],
     publishedAt: "2025-09-19T22:30:00.000Z",
     status: "publicado",
-    views: 12940,
+    views: 0,
     featured: true,
   },
   {
@@ -179,7 +179,7 @@ export const seedArticles: Article[] = [
     ],
     publishedAt: "2025-09-19T14:00:00.000Z",
     status: "publicado",
-    views: 5310,
+    views: 0,
     featured: true,
   },
   {
@@ -216,7 +216,7 @@ export const seedArticles: Article[] = [
     ],
     publishedAt: "2025-09-18T20:10:00.000Z",
     status: "publicado",
-    views: 3902,
+    views: 0,
   },
   {
     id: "a5",
@@ -257,7 +257,7 @@ export const seedArticles: Article[] = [
     ],
     publishedAt: "2025-09-18T11:00:00.000Z",
     status: "publicado",
-    views: 2711,
+    views: 0,
   },
   {
     id: "a6",
@@ -284,7 +284,7 @@ export const seedArticles: Article[] = [
     ],
     publishedAt: "2025-09-17T08:30:00.000Z",
     status: "publicado",
-    views: 1980,
+    views: 0,
   },
   {
     id: "a7",
@@ -310,7 +310,7 @@ export const seedArticles: Article[] = [
     ],
     publishedAt: "2025-09-16T09:15:00.000Z",
     status: "publicado",
-    views: 1540,
+    views: 0,
   },
   {
     id: "a8",

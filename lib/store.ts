@@ -3,10 +3,14 @@
 import { useEffect, useState } from "react";
 import type { Article } from "./types";
 import { seedArticles } from "./seed";
+import { loadRadio, saveRadio, type RadioConfig } from "./radio";
+import { loadSettings, saveSettings, type PortalSettings } from "./settings";
+import { loadThemeChoice, saveThemeChoice } from "./themes";
 import { sortArticles, slugify, findArticle } from "./articles";
 
 const KEY = "portal-nova.articles.v1";
 const ACTIONS_KEY = "portal-nova.quickActions.v1";
+const VIEWS_KEY = "portal-nova.views.v1";
 
 export {
   sortArticles,
@@ -24,7 +28,10 @@ function read(): Article[] {
   try {
     const raw = localStorage.getItem(KEY);
     if (raw) {
-      cache = JSON.parse(raw) as Article[];
+      cache = (JSON.parse(raw) as Article[]).map((a) => {
+        const seed = seedArticles.find((s) => s.id === a.id);
+        return seed ? { ...a, views: 0 } : a;
+      });
       return cache;
     }
   } catch {
@@ -101,15 +108,21 @@ export interface BackupPayload {
   exportedAt: string;
   articles: Article[];
   quickActions?: QuickAction[];
+  settings?: unknown;
+  radio?: unknown;
+  theme?: string;
 }
 
 export function exportBackup(): string {
   return JSON.stringify(
     {
-      version: 1,
+      version: 2,
       exportedAt: new Date().toISOString(),
       articles: read(),
       quickActions: listQuickActions(),
+      settings: loadSettings(),
+      radio: loadRadio(),
+      theme: loadThemeChoice(),
     },
     null,
     2,
@@ -134,6 +147,58 @@ export function restoreBackup(data: BackupPayload) {
   if (Array.isArray(data.quickActions) && data.quickActions.length > 0) {
     saveQuickActions(data.quickActions);
   }
+  if (data.settings && typeof data.settings === "object") {
+    saveSettings(data.settings as PortalSettings);
+  }
+  if (data.radio && typeof data.radio === "object") {
+    saveRadio(data.radio as RadioConfig);
+  }
+  if (typeof data.theme === "string" && data.theme) {
+    saveThemeChoice(data.theme);
+  }
+}
+
+export function localViews(): Record<string, number> {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = window.localStorage.getItem(VIEWS_KEY);
+    return raw ? (JSON.parse(raw) as Record<string, number>) : {};
+  } catch {
+    return {};
+  }
+}
+
+export function registerLocalView(slug: string): number {
+  if (typeof window === "undefined") return 0;
+  const map = localViews();
+  map[slug] = (map[slug] ?? 0) + 1;
+  window.localStorage.setItem(VIEWS_KEY, JSON.stringify(map));
+  return map[slug];
+}
+
+export function displayViews(article: Article): number {
+  return (article.views ?? 0) + (localViews()[article.slug] ?? 0);
+}
+
+export function useAllArticles(): { articles: Article[]; refresh: () => void } {
+  const [local, setLocal] = useState<Article[]>([]);
+  const [remote, setRemote] = useState<Article[]>([]);
+
+  const refresh = () => {
+    setLocal(listArticles());
+    fetch("/api/published")
+      .then((r) => (r.ok ? r.json() : { articles: [] }))
+      .then((d) => setRemote(Array.isArray(d.articles) ? d.articles : []))
+      .catch(() => {});
+  };
+
+  useEffect(() => {
+    refresh();
+    window.addEventListener("portal-nova.update", refresh);
+    return () => window.removeEventListener("portal-nova.update", refresh);
+  }, []);
+
+  return { articles: mergeWithRemote(local, remote), refresh };
 }
 
 export function mergeWithRemote(local: Article[], remote: Article[]): Article[] {

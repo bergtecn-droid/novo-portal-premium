@@ -10,10 +10,17 @@ import {
   saveSettings,
   useSettings,
 } from "@/lib/settings";
+import {
+  DEFAULT_RADIO_STATIONS,
+  loadRadio,
+  saveRadio,
+} from "@/lib/radio";
+import type { RadioConfig } from "@/lib/radio";
 import type { PortalSettings } from "@/lib/settings";
 import {
   checkCloudStatus,
   deleteArticleFromServer,
+  displayViews,
   formatDate,
   listArticles,
   listQuickActions,
@@ -22,6 +29,7 @@ import {
   saveQuickActions,
   syncAllLocalToServer,
   syncArticleToServer,
+  useAllArticles,
   defaultQuickActions,
   exportBackup,
   parseBackup,
@@ -52,7 +60,7 @@ const statusLabel: Record<Status, string> = {
 const ICONS = ["📝", "🖼️", "🎬", "📊", "🗑️", "⚙️", "🌐", "👤", "📢", "🔖"];
 
 export default function AdminPage() {
-  const [articles, setArticles] = useState<Article[]>([]);
+  const { articles, refresh } = useAllArticles();
   const [actions, setActions] = useState(defaultQuickActions);
   const [adding, setAdding] = useState(false);
   const [newAction, setNewAction] = useState({ label: "", icon: "📝", href: "/" });
@@ -60,6 +68,8 @@ export default function AdminPage() {
   const [cloudActive, setCloudActive] = useState<boolean | null>(null);
   const [cloudBusy, setCloudBusy] = useState(false);
   const [cloudMsg, setCloudMsg] = useState("");
+  const [radioDraft, setRadioDraft] = useState<RadioConfig | null>(null);
+  const [radioMsg, setRadioMsg] = useState("");
   const [themeChoice, setThemeChoice] = useState("auto");
   const fileRef = useRef<HTMLInputElement>(null);
   const settings = useSettings();
@@ -77,7 +87,7 @@ export default function AdminPage() {
 
   useEffect(() => {
     const load = () => {
-      setArticles(listArticles());
+      refresh();
       setActions(listQuickActions());
       setThemeChoice(loadThemeChoice());
     };
@@ -90,11 +100,18 @@ export default function AdminPage() {
     checkCloudStatus().then(setCloudActive);
   }, []);
 
+  useEffect(() => {
+    const load = () => setRadioDraft(loadRadio());
+    load();
+    window.addEventListener("portal-nova.radio", load);
+    return () => window.removeEventListener("portal-nova.radio", load);
+  }, []);
+
   const publicadas = articles.filter((a) => a.status === "publicado");
   const rascunhos = articles.filter((a) => a.status === "rascunho");
   const revisao = articles.filter((a) => a.status === "revisao");
-  const totalViews = publicadas.reduce((sum, a) => sum + a.views, 0);
-  const maxViews = Math.max(1, ...publicadas.map((a) => a.views));
+  const totalViews = publicadas.reduce((sum, a) => sum + displayViews(a), 0);
+  const maxViews = Math.max(1, ...publicadas.map(displayViews));
 
   const move = (idx: number, dir: -1 | 1) => {
     const next = [...actions];
@@ -199,7 +216,7 @@ export default function AdminPage() {
                   />
                 </div>
                 <span className="w-16 text-right text-xs font-semibold text-neutral-500">
-                  {a.views.toLocaleString("pt-BR")}
+                  {displayViews(a).toLocaleString("pt-BR")}
                 </span>
               </div>
             ))}
@@ -597,7 +614,7 @@ export default function AdminPage() {
                       }
                     });
                     setSettingsDraft(loadSettings());
-                    setArticles(listArticles());
+                    refresh();
                     setSettingsMsg("✅ Configurações salvas! O portal já está atualizado.");
                   }}
                   className="rounded-full bg-[var(--accent)] px-5 py-2 text-sm font-bold text-neutral-950 transition hover:bg-[var(--accent-soft)]"
@@ -606,6 +623,138 @@ export default function AdminPage() {
                 </button>
                 {settingsMsg && (
                   <span className="text-sm text-neutral-500 dark:text-neutral-400">{settingsMsg}</span>
+                )}
+              </div>
+            </div>
+          )}
+        </section>
+
+        <section className="rounded-2xl border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-[#0f1a30]">
+          <h2 className="font-display text-lg font-bold">📻 Rádio ao vivo</h2>
+          <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+            Coloque o streaming da rádio do cliente. O player aparece no canto
+            inferior do portal, em todas as páginas. Use o endereço do streaming
+            (começa com http).
+          </p>
+          {radioDraft && (
+            <div className="mt-4 space-y-4">
+              <label className="flex items-center gap-3 text-sm">
+                <input
+                  type="checkbox"
+                  checked={radioDraft.enabled}
+                  onChange={(e) =>
+                    setRadioDraft({ ...radioDraft, enabled: e.target.checked })
+                  }
+                  className="h-4 w-4 accent-[var(--accent)]"
+                />
+                <span className="font-semibold">
+                  Rádio ligada (mostra o player no portal)
+                </span>
+              </label>
+
+              <div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-semibold">Estações</span>
+                  <button
+                    onClick={() =>
+                      setRadioDraft({
+                        ...radioDraft,
+                        stations: [...radioDraft.stations, { name: "", url: "" }],
+                      })
+                    }
+                    className="rounded-full border border-neutral-300 px-3 py-1 text-xs font-semibold transition hover:border-[var(--accent)] dark:border-neutral-700"
+                  >
+                    + Adicionar estação
+                  </button>
+                </div>
+                <div className="mt-2 space-y-2">
+                  {radioDraft.stations.map((s, i) => (
+                    <div key={i} className="flex flex-wrap items-center gap-2">
+                      <input
+                        value={s.name}
+                        onChange={(e) => {
+                          const next = [...radioDraft.stations];
+                          next[i] = { ...next[i], name: e.target.value };
+                          setRadioDraft({ ...radioDraft, stations: next });
+                        }}
+                        placeholder="Nome (ex: Rádio Cidade FM)"
+                        className="w-44 flex-1 rounded-lg border border-neutral-300 bg-transparent px-3 py-2 text-sm dark:border-neutral-700"
+                      />
+                      <input
+                        value={s.url}
+                        onChange={(e) => {
+                          const next = [...radioDraft.stations];
+                          next[i] = { ...next[i], url: e.target.value };
+                          setRadioDraft({ ...radioDraft, stations: next });
+                        }}
+                        placeholder="Endereço do streaming (http...)"
+                        className="w-48 flex-[2] rounded-lg border border-neutral-300 bg-transparent px-3 py-2 text-sm dark:border-neutral-700"
+                      />
+                      <button
+                        onClick={() => {
+                          const next = [...radioDraft.stations];
+                          if (i === 0) return;
+                          [next[i - 1], next[i]] = [next[i], next[i - 1]];
+                          setRadioDraft({ ...radioDraft, stations: next });
+                        }}
+                        className="rounded-lg px-2 py-1 text-xs hover:bg-neutral-200 dark:hover:bg-neutral-700"
+                      >
+                        ↑
+                      </button>
+                      <button
+                        onClick={() => {
+                          const next = [...radioDraft.stations];
+                          if (i >= next.length - 1) return;
+                          [next[i + 1], next[i]] = [next[i], next[i + 1]];
+                          setRadioDraft({ ...radioDraft, stations: next });
+                        }}
+                        className="rounded-lg px-2 py-1 text-xs hover:bg-neutral-200 dark:hover:bg-neutral-700"
+                      >
+                        ↓
+                      </button>
+                      <button
+                        onClick={() =>
+                          setRadioDraft({
+                            ...radioDraft,
+                            stations: radioDraft.stations.filter((_, k) => k !== i),
+                          })
+                        }
+                        className="rounded-lg px-2 py-1 text-xs text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                  {radioDraft.stations.length === 0 && (
+                    <p className="text-xs text-neutral-400">
+                      Sem estações, o player não aparece. Use as demo ou adicione
+                      a do cliente.
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-3">
+                <button
+                  onClick={() => {
+                    saveRadio({
+                      enabled: radioDraft.enabled,
+                      stations:
+                        radioDraft.stations.length > 0
+                          ? radioDraft.stations
+                          : DEFAULT_RADIO_STATIONS,
+                    });
+                    setRadioDraft(loadRadio());
+                    setRadioMsg(
+                      "✅ Rádio atualizada! O player do portal já está valendo.",
+                    );
+                  }}
+                  className="rounded-full bg-[var(--accent)] px-5 py-2 text-sm font-bold text-neutral-950 transition hover:bg-[var(--accent-soft)]"
+                >
+                  💾 Salvar rádio
+                </button>
+                {radioMsg && (
+                  <span className="text-sm text-neutral-500 dark:text-neutral-400">{radioMsg}</span>
                 )}
               </div>
             </div>
@@ -711,9 +860,19 @@ export default function AdminPage() {
                 );
                 if (!ok) return;
                 restoreBackup(data);
-                setArticles(listArticles());
+                refresh();
                 setActions(listQuickActions());
-                setBackupMsg(`✅ Backup restaurado: ${data.articles.length} matérias recarregadas.`);
+                if (cloudActive) {
+                  syncAllLocalToServer().then(({ total, ok }) => {
+                    setBackupMsg(
+                      `✅ Backup restaurado: ${data.articles.length} matérias recarregadas (${ok}/${total} enviadas para a nuvem).`,
+                    );
+                  });
+                } else {
+                  setBackupMsg(
+                    `✅ Backup restaurado: ${data.articles.length} matérias recarregadas.`,
+                  );
+                }
               }}
             />
           </div>
@@ -740,7 +899,7 @@ export default function AdminPage() {
                   <p className="truncate text-sm font-semibold">{a.title}</p>
                   <p className="text-xs text-neutral-400">
                     {a.editoria} • {formatDate(a.publishedAt)} •{" "}
-                    {a.views.toLocaleString("pt-BR")} views
+                    {displayViews(a).toLocaleString("pt-BR")} views
                   </p>
                 </div>
                 <span className={`rounded-full px-3 py-1 text-xs font-semibold ${statusStyle[a.status]}`}>
@@ -758,7 +917,7 @@ export default function AdminPage() {
                         upsertArticle(published);
                         await deleteArticleFromServer(a.slug);
                         await syncArticleToServer(published);
-                        setArticles(listArticles());
+                        refresh();
                       }}
                       className="rounded-lg bg-emerald-500/10 px-3 py-1.5 text-xs font-bold text-emerald-600 transition hover:bg-emerald-500/20 dark:text-emerald-400"
                     >
@@ -773,9 +932,15 @@ export default function AdminPage() {
                   </Link>
                   <button
                     onClick={async () => {
+                      if (
+                        !window.confirm(
+                          `Excluir a matéria “${a.title}”? Essa ação não pode ser desfeita.`,
+                        )
+                      )
+                        return;
                       deleteArticle(a.id);
                       await deleteArticleFromServer(a.slug);
-                      setArticles(listArticles());
+                      refresh();
                     }}
                     className="rounded-lg bg-red-500/10 px-3 py-1.5 text-xs font-bold text-red-500 transition hover:bg-red-500/20"
                   >

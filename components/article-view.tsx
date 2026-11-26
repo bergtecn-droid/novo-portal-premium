@@ -14,6 +14,7 @@ import {
   getArticle,
   publishedArticles,
   readingTime,
+  registerLocalView,
 } from "@/lib/store";
 import type { Article } from "@/lib/types";
 
@@ -21,6 +22,7 @@ export function ArticleView({ slug }: { slug: string }) {
   const router = useRouter();
   const [article, setArticle] = useState<Article | null>(null);
   const [copied, setCopied] = useState(false);
+  const [views, setViews] = useState<number | null>(null);
   const url =
     typeof window === "undefined" ? "" : window.location.href;
 
@@ -58,6 +60,31 @@ export function ArticleView({ slug }: { slug: string }) {
   useEffect(() => {
     if (article) document.title = `${article.title} — Portal Nova`;
   }, [article]);
+
+  useEffect(() => {
+    if (!article) return;
+    const flag = `portal-nova.viewed.${slug}`;
+    try {
+      if (window.sessionStorage.getItem(flag)) {
+        setViews(article.views ?? 0);
+        return;
+      }
+      window.sessionStorage.setItem(flag, "1");
+    } catch {
+      /* ignore */
+    }
+    fetch("/api/views", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ slug }),
+    })
+      .then((r) => r.json())
+      .then((d: { views?: number | null }) => {
+        if (typeof d.views === "number") setViews(d.views);
+        else setViews((article.views ?? 0) + registerLocalView(slug));
+      })
+      .catch(() => setViews((article.views ?? 0) + registerLocalView(slug)));
+  }, [article?.id]);
 
   const related = article
     ? publishedArticles()
@@ -137,6 +164,7 @@ export function ArticleView({ slug }: { slug: string }) {
                 {article.author}
               </span>
               <span>{formatDate(article.publishedAt)}</span>
+              <span>👁 {(views ?? article.views ?? 0).toLocaleString("pt-BR")} visualizações</span>
               <span>⏱ {readingTime(article)} min de leitura</span>
               <span className="ml-auto flex gap-2">
                 <button
