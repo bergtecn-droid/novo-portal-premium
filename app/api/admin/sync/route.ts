@@ -1,5 +1,3 @@
-import { cookies } from "next/headers";
-import { ADMIN_COOKIE, adminToken } from "@/lib/auth";
 import {
   materializeArticleMedia,
   readPortalSettings,
@@ -8,15 +6,11 @@ import {
   writePublished,
 } from "@/lib/server-articles";
 import { readLockState } from "@/lib/server-lock";
+import { adminAuthorized } from "@/lib/server-admin-auth";
 import type { Article } from "@/lib/types";
 
-async function authorized(): Promise<boolean> {
-  const token = (await cookies()).get(ADMIN_COOKIE)?.value;
-  return Boolean(token && token === (await adminToken()));
-}
-
 export async function GET() {
-  if (!(await authorized())) {
+  if (!(await adminAuthorized())) {
     return Response.json({ error: "Não autorizado" }, { status: 401 });
   }
   const state = await readLockState();
@@ -30,7 +24,7 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  if (!(await authorized())) {
+  if (!(await adminAuthorized())) {
     return Response.json({ error: "Não autorizado" }, { status: 401 });
   }
   const body = (await req.json()) as { article?: Article };
@@ -48,7 +42,7 @@ export async function POST(req: Request) {
 }
 
 export async function DELETE(req: Request) {
-  if (!(await authorized())) {
+  if (!(await adminAuthorized())) {
     return Response.json({ error: "Não autorizado" }, { status: 401 });
   }
   const body = (await req.json()) as { slug?: string };

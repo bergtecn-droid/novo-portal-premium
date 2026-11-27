@@ -38,8 +38,12 @@ lib/            tipos, dados de exemplo (seed), loja de dados (localStorage)
 O `/admin` exige login.
 
 - Senha padrão do demo: `nova-admin-2025` — troque em produção!
-- Para definir sua senha: variável de ambiente `ADMIN_PASSWORD` (Vercel: *Project → Settings → Environment Variables*) + redeploy.
-- A sessão dura 30 dias (cookie `HttpOnly`).
+- **Trocar pelo painel:** painel admin → seção **"🔑 Senha do administrador"**
+  (pede a senha atual + a nova; precisa da nuvem/Vercel Blob ativa).
+- Alternativa: variável de ambiente `ADMIN_PASSWORD` (Vercel: *Project →
+  Settings → Environment Variables*) + redeploy.
+- A sessão dura 30 dias (cookie `HttpOnly`). Ao trocar a senha, a antiga deixa
+  de valer em todos os aparelhos.
 
 ## 🔒 Bloqueio do portal (site inteiro com senha)
 

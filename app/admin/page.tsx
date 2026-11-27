@@ -89,6 +89,11 @@ export default function AdminPage() {
   const [lockBusy, setLockBusy] = useState(false);
   const [lockMsg, setLockMsg] = useState("");
   const [lockPassword, setLockPassword] = useState("");
+  const [pwCurrent, setPwCurrent] = useState("");
+  const [pwNew, setPwNew] = useState("");
+  const [pwConfirm, setPwConfirm] = useState("");
+  const [pwBusy, setPwBusy] = useState(false);
+  const [pwMsg, setPwMsg] = useState("");
 
   useEffect(() => {
     const load = () => setSettingsDraft(loadSettings());
@@ -147,6 +152,42 @@ export default function AdminPage() {
       setLockMsg("❌ Não foi possível salvar o bloqueio. Tente de novo.");
     } finally {
       setLockBusy(false);
+    }
+  };
+
+  const changeAdminPassword = async () => {
+    if (pwBusy) return;
+    setPwMsg("");
+    if (pwNew.trim().length < 6) {
+      setPwMsg("\u274c A nova senha precisa ter pelo menos 6 caracteres.");
+      return;
+    }
+    if (pwNew !== pwConfirm) {
+      setPwMsg("\u274c A confirma\u00e7\u00e3o n\u00e3o confere com a nova senha.");
+      return;
+    }
+    setPwBusy(true);
+    try {
+      const res = await fetch("/api/admin/password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ currentPassword: pwCurrent, newPassword: pwNew }),
+      });
+      const data = (await res.json().catch(() => ({}))) as { error?: string };
+      if (res.ok) {
+        setPwCurrent("");
+        setPwNew("");
+        setPwConfirm("");
+        setPwMsg(
+          "\u2705 Senha trocada! A partir do pr\u00f3ximo login, use a nova senha (anote a\u00ed!).",
+        );
+      } else {
+        setPwMsg(`\u274c ${data.error ?? "N\u00e3o foi poss\u00edvel trocar a senha."}`);
+      }
+    } catch {
+      setPwMsg("\u274c N\u00e3o foi poss\u00edvel trocar a senha. Tente de novo.");
+    } finally {
+      setPwBusy(false);
     }
   };
 
@@ -844,6 +885,72 @@ export default function AdminPage() {
               </div>
             );
           })()}
+        </section>
+
+        <section className="rounded-2xl border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-[#0f1a30]">
+          <h2 className="font-display text-lg font-bold">🔑 Senha do administrador</h2>
+          <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+            Troque aqui a senha que d\u00e1 acesso a este painel (/admin). A senha
+            antiga deixa de valer em todos os aparelhos.
+          </p>
+
+          <div className="mt-4 space-y-4">
+            {cloudActive === false && (
+              <div className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-200">
+                \u26a0\ufe0f <b>A troca de senha precisa da nuvem ativa.</b> Siga o
+                guia na se\u00e7\u00e3o \u2601\ufe0f Nuvem &amp; compartilhamento abaixo e
+                volte aqui.
+              </div>
+            )}
+
+            <div className="grid gap-4 sm:grid-cols-3">
+              <label className="text-sm block">
+                <span className="font-semibold">Senha atual</span>
+                <input
+                  type="password"
+                  value={pwCurrent}
+                  onChange={(e) => setPwCurrent(e.target.value)}
+                  autoComplete="current-password"
+                  className="mt-1 w-full rounded-lg border border-neutral-300 bg-transparent px-3 py-2 dark:border-neutral-700"
+                />
+              </label>
+              <label className="text-sm block">
+                <span className="font-semibold">Nova senha (m\u00edn. 6)</span>
+                <input
+                  type="password"
+                  value={pwNew}
+                  onChange={(e) => setPwNew(e.target.value)}
+                  autoComplete="new-password"
+                  className="mt-1 w-full rounded-lg border border-neutral-300 bg-transparent px-3 py-2 dark:border-neutral-700"
+                />
+              </label>
+              <label className="text-sm block">
+                <span className="font-semibold">Confirmar nova senha</span>
+                <input
+                  type="password"
+                  value={pwConfirm}
+                  onChange={(e) => setPwConfirm(e.target.value)}
+                  autoComplete="new-password"
+                  className="mt-1 w-full rounded-lg border border-neutral-300 bg-transparent px-3 py-2 dark:border-neutral-700"
+                />
+              </label>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3">
+              <button
+                onClick={changeAdminPassword}
+                disabled={pwBusy || !pwCurrent || !pwNew || !pwConfirm}
+                className="rounded-full bg-[var(--accent)] px-5 py-2 text-sm font-bold text-neutral-950 transition hover:bg-[var(--accent-soft)] disabled:opacity-50"
+              >
+                {pwBusy ? "Trocando\u2026" : "\U0001f4be Trocar senha do admin"}
+              </button>
+              {pwMsg && (
+                <span className="text-sm font-semibold text-neutral-600 dark:text-neutral-300">
+                  {pwMsg}
+                </span>
+              )}
+            </div>
+          </div>
         </section>
 
         <section className="rounded-2xl border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-[#0f1a30]">

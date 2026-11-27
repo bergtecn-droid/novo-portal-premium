@@ -7,9 +7,14 @@ export function adminPassword(): string {
 }
 
 export async function adminToken(): Promise<string> {
+  return hashAdminPassword(adminPassword());
+}
+
+/** SHA-256 de `${senha}:portal-nova-salt` (formato do cookie de admin). */
+export async function hashAdminPassword(password: string): Promise<string> {
   const digest = await crypto.subtle.digest(
     "SHA-256",
-    new TextEncoder().encode(`${adminPassword()}:portal-nova-salt`),
+    new TextEncoder().encode(`${password}:portal-nova-salt`),
   );
   return Array.from(new Uint8Array(digest))
     .map((b) => b.toString(16).padStart(2, "0"))
