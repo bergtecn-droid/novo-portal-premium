@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { ADMIN_COOKIE, adminToken } from "@/lib/auth";
 import {
   materializePortalSettings,
+  readPortalSettings,
   writePortalSettings,
 } from "@/lib/server-articles";
 import type { PortalSettings } from "@/lib/settings";
@@ -18,7 +19,19 @@ export async function POST(req: Request) {
   if (!settings || typeof settings.portalName !== "string") {
     return Response.json({ error: "Configurações inválidas" }, { status: 400 });
   }
-  const materialized = await materializePortalSettings(settings);
+  // Nunca perder o hash da senha do bloqueio: se o salvo veio sem hash mas
+  // o portal está trancado na nuvem, preserva o hash atual.
+  const existing = await readPortalSettings();
+  const merged: PortalSettings = {
+    ...settings,
+    siteLocked: settings.siteLocked ?? existing?.siteLocked ?? false,
+    sitePasswordHash:
+      settings.sitePasswordHash ??
+      (settings.siteLocked ?? existing?.siteLocked
+        ? existing?.sitePasswordHash
+        : undefined),
+  };
+  const materialized = await materializePortalSettings(merged);
   await writePortalSettings(materialized);
   return Response.json({ ok: true });
 }

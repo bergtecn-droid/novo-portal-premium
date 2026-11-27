@@ -34,15 +34,10 @@ export interface PortalSettings {
   pages?: InstPage[];
   banners?: Banner[];
   contactWhatsapp?: string;
-}
-
-export interface PortalSettings {
-  portalName: string;
-  logoUrl?: string;
-  editorias: Editoria[];
-  tagline?: string;
-  instLinks?: InstLink[];
-  pages?: InstPage[];
+  /** Quando true, o site público inteiro pede senha para entrar. */
+  siteLocked?: boolean;
+  /** SHA-256 de `${senha}:portal-nova-salt` — nunca enviada ao visitante. */
+  sitePasswordHash?: string;
 }
 
 export const DEFAULT_EDITORIAS: Editoria[] = [
@@ -151,6 +146,11 @@ export function loadSettings(): PortalSettings {
         typeof parsed.contactWhatsapp === "string"
           ? parsed.contactWhatsapp
           : undefined,
+      siteLocked: parsed.siteLocked === true,
+      sitePasswordHash:
+        typeof parsed.sitePasswordHash === "string"
+          ? parsed.sitePasswordHash
+          : undefined,
     };
   } catch {
     return DEFAULTS;
@@ -179,6 +179,10 @@ export function saveSettings(settings: PortalSettings) {
       (b) => b.id && b.imageUrl,
     ),
     contactWhatsapp: settings.contactWhatsapp?.trim() || undefined,
+    // Bloqueio do portal: preserva o que já estava salvo, a menos que o
+    // chamador tenha definido explicitamente (seção 🔒 do painel).
+    siteLocked: settings.siteLocked ?? loadSettings().siteLocked,
+    sitePasswordHash: settings.sitePasswordHash ?? loadSettings().sitePasswordHash,
   };
   window.localStorage.setItem(PORTAL_SETTINGS_KEY, JSON.stringify(clean));
   window.dispatchEvent(new CustomEvent("portal-nova.settings"));
@@ -193,6 +197,34 @@ export function resetSettings() {
   if (typeof window === "undefined") return;
   window.localStorage.removeItem(PORTAL_SETTINGS_KEY);
   window.dispatchEvent(new CustomEvent("portal-nova.settings"));
+}
+
+/** SHA-256 de `${senha}:portal-nova-salt` (mesmo esquema do login admin). */
+export async function hashPassword(password: string): Promise<string> {
+  const digest = await crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode(`${password}:portal-nova-salt`),
+  );
+  return Array.from(new Uint8Array(digest))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+/** Liga/desliga o bloqueio do site público com uma senha de acesso. */
+export async function setSiteLock(
+  locked: boolean,
+  password?: string,
+): Promise<PortalSettings> {
+  const current = loadSettings();
+  const next: PortalSettings = {
+    ...current,
+    siteLocked: locked,
+    sitePasswordHash: locked
+      ? await hashPassword(password ?? "")
+      : undefined,
+  };
+  saveSettings(next);
+  return next;
 }
 
 export function fullPortalName(settings: PortalSettings): string {

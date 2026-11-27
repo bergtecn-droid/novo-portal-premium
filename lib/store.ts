@@ -266,6 +266,28 @@ export async function checkCloudStatus(): Promise<boolean | null> {
   }
 }
 
+/** Estado do servidor para o painel: nuvem ativa + bloqueio do portal. */
+export async function checkAdminStatus(): Promise<{
+  storage: boolean | null;
+  locked: boolean | null;
+}> {
+  try {
+    const res = await fetch("/api/admin/sync");
+    if (res.status === 401 || !res.ok) return { storage: null, locked: null };
+    const data = (await res.json()) as {
+      storage?: boolean;
+      lock?: { locked?: boolean };
+    };
+    return {
+      storage: typeof data.storage === "boolean" ? data.storage : null,
+      locked:
+        typeof data.lock?.locked === "boolean" ? data.lock.locked : null,
+    };
+  } catch {
+    return { storage: null, locked: null };
+  }
+}
+
 export async function syncAllLocalToServer(): Promise<{
   total: number;
   ok: number;

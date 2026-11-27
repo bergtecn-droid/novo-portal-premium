@@ -9,6 +9,7 @@ import {
   DEFAULT_INST_LINKS,
   loadSettings,
   saveSettings,
+  setSiteLock,
   useSettings,
 } from "@/lib/settings";
 import {
@@ -19,6 +20,7 @@ import {
 import type { RadioConfig } from "@/lib/radio";
 import type { PortalSettings } from "@/lib/settings";
 import {
+  checkAdminStatus,
   checkCloudStatus,
   deleteArticleFromServer,
   displayViews,
@@ -80,6 +82,13 @@ export default function AdminPage() {
   const [settingsMsg, setSettingsMsg] = useState("");
   const [logoBusy, setLogoBusy] = useState(false);
   const logoRef = useRef<HTMLInputElement>(null);
+  const [lockState, setLockState] = useState<{
+    storage: boolean | null;
+    locked: boolean | null;
+  } | null>(null);
+  const [lockBusy, setLockBusy] = useState(false);
+  const [lockMsg, setLockMsg] = useState("");
+  const [lockPassword, setLockPassword] = useState("");
 
   useEffect(() => {
     const load = () => setSettingsDraft(loadSettings());
@@ -104,11 +113,51 @@ export default function AdminPage() {
   }, []);
 
   useEffect(() => {
+    checkAdminStatus().then(setLockState);
+  }, []);
+
+  useEffect(() => {
     const load = () => setRadioDraft(loadRadio());
     load();
     window.addEventListener("portal-nova.radio", load);
     return () => window.removeEventListener("portal-nova.radio", load);
   }, []);
+
+  const refreshLock = () => {
+    checkAdminStatus().then(setLockState);
+    setSettingsDraft(loadSettings());
+  };
+
+  const applyLock = async (locked: boolean, password?: string) => {
+    if (lockBusy) return;
+    setLockBusy(true);
+    setLockMsg("");
+    try {
+      await setSiteLock(locked, password);
+      setLockPassword("");
+      refreshLock();
+      setLockMsg(
+        locked
+          ? cloudActive
+            ? "🔒 Portal bloqueado! Só entra quem tiver a senha de acesso."
+            : "🔒 Bloqueio salvo! Vai valer para todos os visitantes assim que a nuvem estiver ativa (guia na seção ☁️ Nuvem abaixo)."
+          : "🟢 Portal desbloqueado — aberto para todo mundo.",
+      );
+    } catch {
+      setLockMsg("❌ Não foi possível salvar o bloqueio. Tente de novo.");
+    } finally {
+      setLockBusy(false);
+    }
+  };
+
+  const lockNow = () => {
+    const pw = lockPassword.trim();
+    if (pw.length < 4) {
+      setLockMsg("❌ A senha precisa ter pelo menos 4 caracteres.");
+      return;
+    }
+    applyLock(true, pw);
+  };
 
   const publicadas = articles.filter((a) => a.status === "publicado");
   const rascunhos = articles.filter((a) => a.status === "rascunho");
@@ -701,6 +750,100 @@ export default function AdminPage() {
               </div>
             </div>
           )}
+        </section>
+
+        <section className="rounded-2xl border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-[#0f1a30]">
+          <h2 className="font-display text-lg font-bold">🔒 Bloqueio do portal</h2>
+          <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+            Tranca o site inteiro: o visitante só vê as matérias depois de digitar
+            a senha de acesso. O painel <b>/admin</b> continua sempre acessível
+            com a senha do administrador.
+          </p>
+
+          {(() => {
+            const isLocked = lockState?.locked ?? settingsDraft?.siteLocked === true;
+            return (
+              <div className="mt-4 space-y-4">
+                <div
+                  className={`rounded-xl border p-4 text-sm font-semibold ${
+                    isLocked
+                      ? "border-amber-300 bg-amber-50 text-amber-900 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-200"
+                      : "border-emerald-300 bg-emerald-50 text-emerald-800 dark:border-emerald-500/40 dark:bg-emerald-500/10 dark:text-emerald-300"
+                  }`}
+                >
+                  {isLocked
+                    ? "🔒 O portal está BLOQUEADO — somente quem tem a senha de acesso consegue ver as matérias."
+                    : "🟢 O portal está aberto — qualquer pessoa com o link consegue ver."}
+                </div>
+
+                {isLocked ? (
+                  <div className="flex flex-wrap items-center gap-3">
+                    <input
+                      type="password"
+                      value={lockPassword}
+                      onChange={(e) => setLockPassword(e.target.value)}
+                      placeholder="Nova senha de acesso (opcional)"
+                      className="w-full max-w-xs rounded-lg border border-neutral-300 bg-transparent px-3 py-2 dark:border-neutral-700"
+                    />
+                    <button
+                      onClick={lockNow}
+                      disabled={lockBusy || !lockPassword.trim()}
+                      className="rounded-full border border-neutral-300 px-4 py-2 text-sm font-semibold transition hover:border-[var(--accent)] disabled:opacity-50 dark:border-neutral-700"
+                    >
+                      🔑 Trocar senha
+                    </button>
+                    <button
+                      onClick={() => applyLock(false)}
+                      disabled={lockBusy}
+                      className="rounded-full bg-emerald-600 px-4 py-2 text-sm font-bold text-white transition hover:bg-emerald-500 disabled:opacity-50"
+                    >
+                      🟢 Desbloquear o portal
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex flex-wrap items-center gap-3">
+                    <input
+                      type="password"
+                      value={lockPassword}
+                      onChange={(e) => setLockPassword(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") lockNow();
+                      }}
+                      placeholder="Crie a senha de acesso ao portal"
+                      className="w-full max-w-xs rounded-lg border border-neutral-300 bg-transparent px-3 py-2 dark:border-neutral-700"
+                    />
+                    <button
+                      onClick={lockNow}
+                      disabled={lockBusy || !lockPassword.trim()}
+                      className="rounded-full bg-[var(--accent)] px-5 py-2 text-sm font-bold text-neutral-950 transition hover:bg-[var(--accent-soft)] disabled:opacity-50"
+                    >
+                      {lockBusy ? "Salvando…" : "🔒 Bloquear o portal"}
+                    </button>
+                  </div>
+                )}
+
+                {cloudActive === false && isLocked && (
+                  <div className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-200">
+                    ⚠️ <b>A nuvem ainda não está ativa.</b> O bloqueio está salvo,
+                    mas só vai valer para todos os visitantes depois de ativar a
+                    nuvem — siga o guia na seção ☁️ Nuvem &amp; compartilhamento
+                    abaixo.
+                  </div>
+                )}
+
+                {lockMsg && (
+                  <p className="text-sm font-semibold text-neutral-600 dark:text-neutral-300">
+                    {lockMsg}
+                  </p>
+                )}
+
+                <p className="text-xs text-neutral-400">
+                  Esqueceu a senha? Sem problema: volte aqui no painel e crie
+                  outra (ou desbloqueie o portal).
+                </p>
+              </div>
+            );
+          })()}
         </section>
 
         <section className="rounded-2xl border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-[#0f1a30]">

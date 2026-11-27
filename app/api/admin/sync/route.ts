@@ -2,10 +2,12 @@ import { cookies } from "next/headers";
 import { ADMIN_COOKIE, adminToken } from "@/lib/auth";
 import {
   materializeArticleMedia,
+  readPortalSettings,
   readPublished,
   storageActive,
   writePublished,
 } from "@/lib/server-articles";
+import { readLockState } from "@/lib/server-lock";
 import type { Article } from "@/lib/types";
 
 async function authorized(): Promise<boolean> {
@@ -17,7 +19,14 @@ export async function GET() {
   if (!(await authorized())) {
     return Response.json({ error: "Não autorizado" }, { status: 401 });
   }
-  return Response.json({ storage: storageActive() });
+  const state = await readLockState();
+  return Response.json({
+    storage: storageActive(),
+    lock: {
+      locked: state.locked,
+      source: state.source,
+    },
+  });
 }
 
 export async function POST(req: Request) {

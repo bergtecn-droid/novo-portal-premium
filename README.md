@@ -41,6 +41,21 @@ O `/admin` exige login.
 - Para definir sua senha: variável de ambiente `ADMIN_PASSWORD` (Vercel: *Project → Settings → Environment Variables*) + redeploy.
 - A sessão dura 30 dias (cookie `HttpOnly`).
 
+## 🔒 Bloqueio do portal (site inteiro com senha)
+
+Além do painel, o SITE PÚBLICO também pode ser trancado: o visitante só vê as
+matérias depois de digitar a senha de acesso.
+
+- **Como ligar:** painel admin → seção **"🔒 Bloqueio do portal"** → crie a
+  senha de acesso e clique em **Bloquear o portal**.
+- **Como desligar:** mesma seção → **Desbloquear o portal** (ou crie outra senha
+  com "Trocar senha").
+- O `/admin` nunca é bloqueado (continua com a senha do administrador).
+- O bloqueio vale para **todos os visitantes** quando a nuvem (Vercel Blob)
+  está ativa — a senha de acesso sobe junto com as configurações.
+- Alternativa rápida sem nuvem: variável de ambiente `PORTAL_LOCK_PASSWORD`
+  (Vercel: *Settings → Environment Variables*) + redeploy.
+
 ## 🎨 Temas sazonais
 
 O portal tem 9 temas (Padrão, Natal, Ano Novo, Páscoa, Festa Junina, Verão, Outono, Inverno, Primavera) que trocam a cor de destaque de todo o site.

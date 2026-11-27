@@ -1,7 +1,8 @@
 import { readPublished, storageActive, writePublished } from "@/lib/server-articles";
+import { siteUnlocked } from "@/lib/server-lock";
 
 export async function POST(req: Request) {
-  if (!storageActive()) {
+  if (!storageActive() || !(await siteUnlocked())) {
     return Response.json({ views: null });
   }
   const body = (await req.json().catch(() => ({}))) as { slug?: string };
